@@ -1,0 +1,30 @@
+{
+    "parserOptions": {
+        "ecmaVersion": 2018,
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": true
+        }
+    },
+    "env": {
+        "browser": true,
+        "node": true,
+        "mocha": true,
+        "jest": true,
+        "es6": true
+    },
+    "extends": [
+        "eslint:recommended"
+    ],
+    "rules": {
+        "indent": [
+            2,
+            4,
+            {
+                "SwitchCase": 1
+            }
+        ],
+        "no-console": 1,
+        "camelcase": 2
+    }
+}

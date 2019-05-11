@@ -1,0 +1,49 @@
+{
+  "name": "@notores/core",
+  "version": "0.0.1",
+  "description": "Notores core module with tools for all other modules and module processing",
+  "main": "index.js",
+  "repository": "git@github.com:notores/core.git",
+  "scripts": {
+    "test": "jest ./"
+  },
+  "authors": [
+    "Renzo Roso <renzo@geex.company>",
+    "Kevin Sijbers <k.sijbers@gmail.com>"
+  ],
+  "peerDependencies": {
+    "body-parser": "^1.18.3",
+    "compression": "^1.7.3",
+    "dotenv": "^7.0.0",
+    "express": "^4.16.4",
+    "moment": "^2.24.0",
+    "mongoose": "5.5.5",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.4.4",
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
+    "@babel/preset-env": "^7.4.4",
+    "@shelf/jest-mongodb": "^1.0.1",
+    "babel-jest": "^24.8.0",
+    "eslint": "^5.14.1",
+    "jest": "^24.8.0",
+    "mongoose": "^5.5.5"
+  },
+  "dependencies": {
+    "bcrypt": "^3.0.6",
+    "body-parser": "^1.18.3",
+    "compression": "^1.7.3",
+    "cookie-parser": "^1.4.4",
+    "dotenv": "^7.0.0",
+    "express": "^4.16.4",
+    "fawn": "^2.1.5",
+    "jsonwebtoken": "^8.5.0",
+    "moment": "^2.24.0",
+    "mongo-uri-builder": "^2.0.0",
+    "passport": "^0.4.0",
+    "passport-jwt": "^4.0.0",
+    "passport-local": "^1.0.0",
+    "winston": "^3.2.1"
+  }
+}
