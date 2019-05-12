@@ -1,4 +1,3 @@
-const express = require('express');
 const logger = require('./logger')(module);
 
 const apps = {
@@ -17,11 +16,12 @@ const apps = {
 };
 
 function createServer() {
+    const express = require('express');
+    const passport = require('passport');
     const compression = require('compression');
     const bodyParser = require('body-parser');
     const cookieParser = require('cookie-parser');
 
-    const {serveStatic} = require('./lib/middleware');
     const {getConfig} = require('./lib/config');
     const locals = require('./lib/Locals');
     const responseHandler = require('./lib/responseHandler');
@@ -36,7 +36,7 @@ function createServer() {
     apps.private.main = express();
     apps.private.preMiddleware = express();
     apps.private.router = express();
-    apps.private.postMiddleware= express();
+    apps.private.postMiddleware = express();
 
     apps.main.use(compression());
 
@@ -50,6 +50,9 @@ function createServer() {
         next();
     });
 
+    apps.main.use(passport.initialize());
+    apps.main.use(passport.session());
+
     apps.main.use(bodyParser.json());
     apps.main.use(bodyParser.urlencoded({extended: true}));
     apps.main.use(cookieParser());
@@ -58,8 +61,6 @@ function createServer() {
     apps.main.use(apps.preMiddleware);
 
     apps.main.use(apps.public.main);
-
-    apps.public.main.use(serveStatic());
 
     apps.public.main.use(apps.public.preMiddleware);
     apps.public.main.use(apps.public.router);
@@ -80,21 +81,6 @@ function createServer() {
     apps.private.main.use(apps.private.router);
     apps.private.main.use(apps.private.postMiddleware);
 
-    apps.private.router.use((req, res, next) => {
-        const themeConfig = req.notores.theme;
-        if (themeConfig.private.serveStatic) {
-            if (req.originalUrl === '/n-admin') {
-                return res.redirect('/n-admin/');
-            }
-
-            return next();
-        } else {
-            return next('route');
-        }
-    }, serveStatic(true));
-
-    apps.private.router.use(serveStatic(true));
-
     apps.main.use(
         checkAcceptsHeaders(['html', 'json']),
         responseHandler.responseHandler
@@ -104,6 +90,12 @@ function createServer() {
 }
 
 function startServer(port = process.env.PORT) {
+    if (!port)
+        port = 3000;
+
+    if (!apps.main)
+        createServer();
+
     apps.main.listen(port, () => {
         logger.info(`Server started, listening on port:${port}`);
         if (process.env.NODE_ENV === 'development')
