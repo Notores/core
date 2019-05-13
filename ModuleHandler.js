@@ -20,7 +20,7 @@ function getModule(moduleName) {
             mod = require(registeredModule.absolutePath);
         else
             mod = require(moduleName);
-        mod.installed = false;
+        mod.installed = true;
         return mod;
     } catch (e) {
         return {
@@ -32,17 +32,15 @@ function getModule(moduleName) {
 function loadModule(name, path) {
     const result = getModule(name);
 
-    if (result.installed)
-        return result;
-
-    if (!path)
+    if(!result.installed) {
+        if (!path)
         path = name;
 
-    if (path.indexOf(':root') === 0) {
-        const rootDir = process.cwd();
-        path = join(rootDir, path.replace(':root', ''));
+        if (path.indexOf(':root') === 0) {
+            const rootDir = process.cwd();
+            path = join(rootDir, path.replace(':root', ''));
+        }
     }
-
     try {
         const mod = require(path);
         if(mod.init)
