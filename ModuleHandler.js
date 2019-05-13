@@ -20,7 +20,7 @@ function getModule(moduleName) {
             mod = require(registeredModule.absolutePath);
         else
             mod = require(moduleName);
-        mod.installed = true;
+        mod.installed = false;
         return mod;
     } catch (e) {
         return {
@@ -31,6 +31,7 @@ function getModule(moduleName) {
 
 function loadModule(name, path) {
     const result = getModule(name);
+
     if (result.installed)
         return result;
 
@@ -44,7 +45,8 @@ function loadModule(name, path) {
 
     try {
         const mod = require(path);
-        mod.init();
+        if(mod.init)
+            mod.init();
         modules.push({name, absolutePath: path});
         mod.installed = true;
         return mod;
@@ -59,7 +61,6 @@ function loadModule(name, path) {
 
 function loadModules() {
     const packageNotoresConfig = getPackage('notores');
-
     let mods = [...baseModules];
 
     if (packageNotoresConfig.hasOwnProperty('modules') && packageNotoresConfig.modules.length > 0) {
