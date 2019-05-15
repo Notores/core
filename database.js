@@ -7,13 +7,19 @@ let database;
 function selectDatabase() {
     switch ((process.env.DBMS || 'mongodb').toLowerCase()) {
         case 'mssql':
-            const db = getModule('notores-mssql');
+            const db = getModule('@notores/mssql');
             if(db.installed) {
                 return database = db;
             } else {
                 return {error: 'Module for mssql not installed.'};
             }
-
+        case 'mysql':
+            const db = getModule('@notores/mysql');
+            if(db.installed) {
+                return database = db;
+            } else {
+                return {error: 'Module for mysql not installed.'};
+            }
         default:
             return database = mongo;
     }
