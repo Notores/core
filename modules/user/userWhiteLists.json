@@ -1,0 +1,16 @@
+{
+    "get": [
+        "username",
+        "email",
+        "firstname",
+        "lastname",
+        "roles"
+    ],
+    "session": [
+        "username",
+        "email",
+        "firstname",
+        "lastname",
+        "roles"
+    ]
+}
