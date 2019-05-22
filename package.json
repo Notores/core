@@ -31,7 +31,7 @@
     "mongoose": "^5.5.5"
   },
   "dependencies": {
-    "@notores/user": "./modules/user/",
+    "@notores/user": "./modules/user",
     "bcrypt": "^3.0.6",
     "body-parser": "^1.18.3",
     "client-sessions": "^0.8.0",

@@ -710,7 +710,7 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^12.0.9"
 
-"@notores/user@./modules/user/":
+"@notores/user@./modules/user":
   version "0.0.1"
 
 "@shelf/jest-mongodb@^1.0.1":
