@@ -3,7 +3,6 @@ const database = require('./database');
 const ModuleHandler = require('./ModuleHandler');
 const logger = require('./logger');
 const Locals = require('./lib/Locals').Locals;
-const {serveStatic} = require('./lib/middleware');
 const MongoSchema = require('./lib/MongoSchema');
 const NotoresModule = require('./lib/NotoresModule');
 const {responseHandler, htmlResponder, jsonResponder} = require('./lib/responseHandler');
@@ -33,6 +32,5 @@ module.exports = {
     handleActive,
     createServer,
     getServers,
-    serveStatic,
     startServer,
 };
