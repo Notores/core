@@ -3,7 +3,7 @@ const logger = require('./logger')(module);
 const {getPackage} = require('./lib/config');
 
 const baseModules = [
-    // {name: '@notores/user', absolutePath: './modules/user'}, //temp disabled till this is tested
+    {name: '@notores/user', absolutePath: './modules/user'},
     {name: '@notores/shared-models', absolutePath: './modules/shared-models'},
 ];
 
