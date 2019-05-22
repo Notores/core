@@ -7,8 +7,8 @@ const {serveStatic} = require('./lib/middleware');
 const MongoSchema = require('./lib/MongoSchema');
 const NotoresModule = require('./lib/NotoresModule');
 const {responseHandler, htmlResponder, jsonResponder} = require('./lib/responseHandler');
-const {routeWithHandle, middlewareForRouter, addRouteToRegistry, getRegistry, handleActive, getThemePath, checkEmptyParams, checkParamIsObjectId, checkInput} = require('./lib/routeUtils');
 const {createServer, getServers, startServer} = require('./server');
+const { routeWithHandle, middlewareForRouter, addRouteToRegistry, getRegistry, handleActive, checkEmptyParams, checkParamIsObjectId, checkInput } = require('./lib/routeUtils');
 
 module.exports = {
     checkEmptyParams,
@@ -19,7 +19,6 @@ module.exports = {
     writeConfig,
     getPackage,
     getModule: ModuleHandler.getModule,
-    getThemePath,
     Locals,
     logger,
     MongoSchema,
