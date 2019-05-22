@@ -75,7 +75,6 @@ function loadModules() {
     mods.forEach(({name, absolutePath}) => loadModule(name, absolutePath));
 }
 
-
 function getModulesList() {
     return modules;
 }

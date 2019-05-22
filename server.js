@@ -20,7 +20,9 @@ function createServer() {
     const passport = require('passport');
     const compression = require('compression');
     const bodyParser = require('body-parser');
-    const cookieParser = require('cookie-parser');
+    // const cookieParser = require('cookie-parser');
+    const sessions = require('client-sessions');
+    const crypto = require('crypto');
 
     const {getConfig} = require('./lib/config');
     const locals = require('./lib/Locals');
@@ -50,12 +52,47 @@ function createServer() {
         next();
     });
 
-    apps.main.use(passport.initialize());
-    apps.main.use(passport.session());
+    apps.main.use(sessions({
+        cookieName: 'notores', // cookie name dictates the key name added to the request object
+        requestKey: 'session', // changes the session key from req.cookieName to this (req.session)
+        secret: process.env.COOKIE_SECRET, // should be a large unguessable string
+        duration: 20 * 7 * 24 * 60 * 60 * 1000, // how long the session will stay valid in ms
+        activeDuration: 20 * 7 * 24 * 60 * 60 * 1000, // if expiresIn < activeDuration, the session will be extended by activeDuration milliseconds
+        cookie: {
+            httpOnly: true, // when true, cookie is not accessible from javascript
+        }
+    }));
+
+    apps.main.use((req, res, next) => {
+        if (!req.session.id) {
+            const buf = crypto.randomBytes(16);
+            req.session.id = buf.toString('hex');
+            // console.log(req.wsSession);
+        }
+        next();
+    });
 
     apps.main.use(bodyParser.json());
     apps.main.use(bodyParser.urlencoded({extended: true}));
-    apps.main.use(cookieParser());
+
+    apps.main.use(passport.initialize());
+    apps.main.use(passport.session());
+
+    apps.main.use((req, res, next) => {
+        if (req.isAuthenticated())
+            return next();
+
+        passport.authenticate('jwt', (err, user, info) => {
+            if (user) {
+                return req.login(user, () => {
+                    next();
+                });
+            }
+            return next();
+        })(req, res, next);
+    });
+
+
     apps.main.use(locals);
 
     apps.main.use(apps.preMiddleware);
