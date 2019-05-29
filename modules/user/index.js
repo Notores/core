@@ -1,4 +1,4 @@
-const {NotoresModule} = require('@notores/core');
+const NotoresModule = require('./../../lib/NotoresModule');
 
 class NotoresUserModule extends NotoresModule {
 

@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const logger = require('@notores/core/logger')(module);
+const logger = require('./../../logger')(module);
 
 class UserRouter {
 

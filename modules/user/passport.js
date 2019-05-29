@@ -1,9 +1,9 @@
-const logger = require('@notores/core/logger')(module);
+const logger = require('./../../logger')(module);
 const passport = require("passport");
 const LocalStrategy = require('passport-local').Strategy;
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
-const {getConfig} = require('@notores/core');
+const {getConfig} = require('./../../index');
 
 const User = require('./models/user');
 const UserModel = User.model;

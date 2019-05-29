@@ -1,7 +1,7 @@
 
 const UserRouter = require('./Router');
 const passport = require('./passport');
-const {routeWithHandle, checkParamIsObjectId, checkEmptyParams, checkInput} = require("@notores/core");
+const {routeWithHandle, checkParamIsObjectId, checkEmptyParams, checkInput} = require("./../../index");
 
 //TODO: Fix the edit and delete routes can only be done by the user, not by other users
 routeWithHandle(

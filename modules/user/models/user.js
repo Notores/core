@@ -1,5 +1,5 @@
-const {MongoSchema, getConfig} = require('@notores/core');
-const logger = require('@notores/core/logger')(module);
+const {MongoSchema, getConfig} = require('./../../../index');
+const logger = require('./../../../logger')(module);
 const bcrypt = require('bcrypt');
 const defaultSaltRounds = 10;
 

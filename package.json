@@ -28,6 +28,7 @@
     "babel-jest": "^24.8.0",
     "eslint": "^5.14.1",
     "jest": "^24.8.0",
+    "jest-teamcity-reporter": "^0.9.0",
     "mongoose": "^5.5.5"
   },
   "dependencies": {
