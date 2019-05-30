@@ -11,7 +11,7 @@ class UserRouter {
         return require('./models/user');
     }
 
-    static async login(req, res, next) {
+    static login(req, res, next) {
         const config = req.notores;
 
         const jwtOptions = {...config.main.jwt};
@@ -54,7 +54,7 @@ class UserRouter {
             });
     }
 
-    static async logout(req, res, next) {
+    static logout(req, res, next) {
         req.logout();
         if (res.locals.type === 'html')
             return res.redirect('/');

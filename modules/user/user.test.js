@@ -1,7 +1,8 @@
 const {writeFileSync, unlinkSync} = require('fs');
 const {join} = require('path');
 const mongoose = require('mongoose');
-const notoresJson = require('./notores.test.json');
+const {Locals} = require('./../../lib/Locals');
+const jwt = require('jsonwebtoken');
 
 const root = process.cwd();
 
@@ -25,9 +26,21 @@ describe('Notores/Modules/User', () => {
     describe('Tests', () => {
 
         const userSchema = require('./models/user');
+        const Router = require('./Router');
         const whiteLists = require('./userWhiteLists');
         const testUsers = require('./user.test.json');
         const userPassword = 'I love you 3000!';
+        const notoresTestJson = require('./notores.test.json');
+        let user;
+
+        beforeEach(done => {
+            user = new userSchema.model(testUsers[0]);
+            user.save().then(() => done());
+        });
+
+        afterEach(done => {
+            userSchema.model.deleteMany().then(() => done());
+        });
 
         describe('Model', () => {
             describe('Whitelist', () => {
@@ -49,16 +62,6 @@ describe('Notores/Modules/User', () => {
             });
 
             describe('statics', () => {
-                let user;
-
-                beforeEach(done => {
-                    user = new userSchema.model(testUsers[0]);
-                    user.save().then(() => done());
-                });
-
-                afterEach(done => {
-                    userSchema.model.deleteMany().then(() => done());
-                });
 
                 describe('encryptString', () => {
                     it('Should not be the same as the input string', async () => {
@@ -123,6 +126,112 @@ describe('Notores/Modules/User', () => {
                     });
                 });
             });
+        });
+
+        describe('routes', () => {
+            let spyRouter;
+
+            beforeEach(() => spyRouter = {
+                get: jest.fn(),
+                post: jest.fn(),
+                patch: jest.fn(),
+                delete: jest.fn(),
+            });
+
+        });
+
+        describe('Router', () => {
+            let req;
+            let res;
+            let next;
+
+            Locals.addResponseType('html');
+
+            beforeEach(() => {
+                req = {
+                    isAuthenticated: jest.fn(() => true),
+                    params: {},
+                    body: {},
+                    notores: {
+                        ...notoresTestJson
+                    },
+                    session: {},
+                    user,
+                    logout: jest.fn(),
+                };
+                res = {
+                    status: jest.fn(),
+                    redirect: jest.fn(),
+                };
+                next = jest.fn();
+                res.locals = new Locals(req);
+            });
+
+            describe('.getModel', () => {
+                it('Should return the UserSchema instance', () => {
+                    expect(Router.getModel()).toHaveProperty('modelName', userSchema.modelName);
+                });
+            });
+
+            describe('.getModelWrapper', () => {
+                it('Should return the UserModel instance', () => {
+                    expect(Router.getModelWrapper()).toEqual(userSchema);
+                });
+            });
+
+            describe('.login', () => {
+                it('Should set the current loggedin user to locals', () => {
+                    Router.login(req, res, next);
+
+                    expect(res.locals.body).toHaveProperty('user', user);
+                    expect(next).toHaveBeenCalledTimes(1);
+                });
+
+                it('Should set the users id and jwt in the session', () => {
+                    Router.login(req, res, next);
+
+                    expect(req.session).toHaveProperty('id', user.id);
+                    expect(req.session).toHaveProperty('jwt', res.locals.body.jwt);
+                    expect(next).toHaveBeenCalledTimes(1);
+                });
+
+                it('Should set the current loggedin users id in jwt to locals', () => {
+                    Router.login(req, res, next);
+
+                    const result = jwt.decode(res.locals.body.jwt, notoresTestJson.main.jwt);
+
+                    expect(result).toHaveProperty('id', user.id);
+                    expect(next).toHaveBeenCalledTimes(1);
+                });
+            });
+
+            describe('.logout', () => {
+                it('Should call req.logout to destroy the users session', () => {
+                    Router.logout(req, res, next);
+
+                    expect(req.logout).toHaveBeenCalledTimes(1);
+                    expect(next).toHaveBeenCalledTimes(1);
+                });
+
+                it('Should set a message to locals if the type = "json"', () => {
+                    Router.logout(req, res, next);
+
+                    expect(res.redirect).toHaveBeenCalledTimes(0);
+                    expect(res.locals.body).toHaveProperty('message');
+                    expect(next).toHaveBeenCalledTimes(1);
+                });
+
+                it('Should redirect to "/" (home) if the type = "html"', () => {
+                    res.locals.type = 'html';
+
+                    Router.logout(req, res, next);
+
+                    expect(res.redirect).toHaveBeenCalledTimes(1);
+                    expect(res.redirect).toHaveBeenCalledWith('/');
+                    expect(next).toHaveBeenCalledTimes(0);
+                });
+            });
+
         });
     });
 });

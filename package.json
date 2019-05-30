@@ -5,7 +5,8 @@
   "main": "index.js",
   "repository": "git@github.com:notores/core.git",
   "scripts": {
-    "test": "jest ./"
+    "test": "jest ./",
+    "test-ci": "node ./node_modules/jest/bin/jest.js --ci --env=node --coverage --testResultsProcessor=jest-teamcity-reporter"
   },
   "authors": [
     "Renzo Roso <renzo@geex.company>",
