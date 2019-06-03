@@ -1,4 +1,3 @@
-
 const UserRouter = require('./Router');
 const passport = require('./passport');
 const {routeWithHandle, checkParamIsObjectId, checkEmptyParams, checkInput} = require("./../../index");
@@ -78,7 +77,6 @@ routeWithHandle(
         method: 'post',
     },
 );
-
 
 
 routeWithHandle(
