@@ -20,7 +20,6 @@ function createServer() {
     const passport = require('passport');
     const compression = require('compression');
     const bodyParser = require('body-parser');
-    // const cookieParser = require('cookie-parser');
     const sessions = require('client-sessions');
     const crypto = require('crypto');
 

@@ -7,7 +7,7 @@ const MongoSchema = require('./lib/MongoSchema');
 const NotoresModule = require('./lib/NotoresModule');
 const {responseHandler, htmlResponder, jsonResponder} = require('./lib/responseHandler');
 const {createServer, getServers, startServer} = require('./server');
-const { routeWithHandle, middlewareForRouter, addRouteToRegistry, getRegistry, handleActive, checkEmptyParams, checkParamIsObjectId, checkInput } = require('./lib/routeUtils');
+const {routeWithHandle, middlewareForRouter, addRouteToRegistry, getRegistry, handleActive, checkEmptyParams, checkParamIsObjectId, checkInput} = require('./lib/routeUtils');
 
 module.exports = {
     checkEmptyParams,

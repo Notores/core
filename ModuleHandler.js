@@ -32,9 +32,9 @@ function getModule(moduleName) {
 function loadModule(name, path) {
     const result = getModule(name);
 
-    if(!result.installed) {
+    if (!result.installed) {
         if (!path)
-        path = name;
+            path = name;
 
         if (path.indexOf(':root') === 0) {
             const rootDir = process.cwd();
@@ -43,7 +43,7 @@ function loadModule(name, path) {
     }
     try {
         const mod = require(path);
-        if(mod.init)
+        if (mod.init)
             mod.init();
         modules.push({name, absolutePath: path});
         mod.installed = true;

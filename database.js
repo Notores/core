@@ -6,9 +6,9 @@ let database;
 
 function selectDatabase() {
     switch ((process.env.DBMS || 'mongodb').toLowerCase()) {
-        case 'mssql': { 
+        case 'mssql': {
             const db = getModule('@notores/mssql');
-            if(db.installed) {
+            if (db.installed) {
                 return database = db;
             } else {
                 return {error: 'Module for mssql not installed.'};
@@ -16,7 +16,7 @@ function selectDatabase() {
         }
         case 'mysql': {
             const db = getModule('@notores/mysql');
-            if(db.installed) {
+            if (db.installed) {
                 return database = db;
             } else {
                 return {error: 'Module for mysql not installed.'};
@@ -29,7 +29,7 @@ function selectDatabase() {
 
 async function connect() {
     const db = selectDatabase();
-    if(db.error) {
+    if (db.error) {
         logger.error(db.error);
         throw new Error(db.error);
     }
