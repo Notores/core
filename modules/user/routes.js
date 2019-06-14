@@ -17,7 +17,7 @@ routeWithHandle(
 
 routeWithHandle(
     'notores-verifyExistingEmail',
-    '/user/verify-email-exists',
+    '/user/verify-email-exists/:email',
     [
         checkInput([
             {key: 'email', type: String},
