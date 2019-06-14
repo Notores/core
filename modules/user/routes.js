@@ -16,6 +16,17 @@ routeWithHandle(
 );
 
 routeWithHandle(
+    'notores-verifyExistingEmail',
+    '/user/verify-email-exists',
+    [
+        checkInput([
+            {key: 'email', type: String},
+        ]),
+        UserRouter.verifyEmailExists,
+    ]
+);
+
+routeWithHandle(
     'notores-registerUser',
     '/register',
     [

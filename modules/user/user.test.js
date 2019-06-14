@@ -205,6 +205,26 @@ describe('Notores/Modules/User', () => {
                 });
             });
 
+            describe('verifyEmailExists', () => {
+                it('Should return 0 if no users are found', async() => {
+                    req.params.email = 'This fake email adress';
+
+                    await Router.verifyEmailExists(req,res,next);
+
+                    expect(res.locals.body).toHaveProperty('user', 0);
+                    expect(next).toHaveBeenCalledTimes(1);
+                });
+
+                it('Should return the number of users with given email', async() => {
+                    req.params.email = user.email;
+
+                    await Router.verifyEmailExists(req,res,next);
+
+                    expect(res.locals.body).toHaveProperty('user', 1);
+                    expect(next).toHaveBeenCalledTimes(1);
+                });
+            });
+
             describe('.logout', () => {
                 it('Should call req.logout to destroy the users session', () => {
                     Router.logout(req, res, next);

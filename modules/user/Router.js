@@ -26,6 +26,15 @@ class UserRouter {
         return next();
     }
 
+    static async verifyEmailExists(req, res, next){
+        const UserModel = UserRouter.getModel();
+
+        const result = await UserModel.countDocuments({email: req.params.email});
+
+        res.locals.setBody({user: result});
+        return next();
+    }
+
     static async register(req, res, next) {
         const body = req.body;
         if (!body) {
