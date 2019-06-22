@@ -117,6 +117,11 @@ function createServer() {
     apps.private.main.use(apps.private.router);
     apps.private.main.use(apps.private.postMiddleware);
 
+    apps.private.main.use(
+        checkAcceptsHeaders(['html', 'json']),
+        responseHandler.responseHandler
+    );
+
     apps.main.use(
         checkAcceptsHeaders(['html', 'json']),
         responseHandler.responseHandler
