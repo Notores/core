@@ -11,13 +11,17 @@ class UserRouter {
         return require('./models/user');
     }
 
-    static login(req, res, next) {
+    static createJwt(req) {
         const config = req.notores;
 
         const jwtOptions = {...config.main.jwt};
         delete jwtOptions.secretOrKey;
 
-        const jwtString = jwt.sign({id: req.user.id}, config.main.jwt.secretOrKey, jwtOptions);
+        return jwt.sign({id: req.user.id}, config.main.jwt.secretOrKey, jwtOptions);
+    }
+
+    static login(req, res, next) {
+        const jwtString = UserRouter.createJwt(req);
 
         req.session.jwt = jwtString;
         req.session.id = req.user.id;
@@ -26,7 +30,7 @@ class UserRouter {
         return next();
     }
 
-    static async verifyEmailExists(req, res, next){
+    static async verifyEmailExists(req, res, next) {
         const UserModel = UserRouter.getModel();
 
         const result = await UserModel.countDocuments({email: req.params.email});
@@ -56,11 +60,14 @@ class UserRouter {
             return next();
         }
 
-        if (user.id)
+        if (user.id) {
+            const jwtString = UserRouter.createJwt(req);
+
             return req.login(user, () => {
-                res.locals.setBody({user});
+                res.locals.setBody({user, jwt: jwtString});
                 return next();
             });
+        }
     }
 
     static logout(req, res, next) {
@@ -77,6 +84,12 @@ class UserRouter {
     }
 
     static async get(req, res, next) {
+        const Wrapper = UserRouter.getModelWrapper();
+        const model = Wrapper.model;
+
+        const result = await model.find().select(Wrapper.whitelist.get).exec();
+
+        res.locals.setBody({user: result});
 
         next();
     }

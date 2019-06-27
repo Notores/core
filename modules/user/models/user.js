@@ -66,7 +66,17 @@ User.statics.register = async function (input) {
     if (checkExists)
         return {error: 'User already exists'};
 
-    const user = new User.model({[usernameField]: input[usernameField], password: input.password});
+    const password = await User.model.encryptString(input.password);
+
+    const userToSaveObject = {
+        ...input,
+        [usernameField]: input[usernameField],
+        password
+    };
+
+    delete userToSaveObject.repeatPassword;
+
+    const user = new User.model(userToSaveObject);
 
     await user.save();
 
@@ -84,7 +94,6 @@ User.statics.getUserById = async (id) => {
 };
 
 User.methods.verifyPassword = async function (pass) {
-    console.log(pass, this.password);
     const isCorrectPassword = await bcrypt.compare(pass, this.password);
     return isCorrectPassword ? {message: 'Correct password'} : {error: 'Incorrect password'};
 };
