@@ -61,9 +61,9 @@ class UserRouter {
         }
 
         if (user.id) {
-            const jwtString = UserRouter.createJwt(req);
-
             return req.login(user, () => {
+                const jwtString = UserRouter.createJwt(req);
+
                 res.locals.setBody({user, jwt: jwtString});
                 return next();
             });
