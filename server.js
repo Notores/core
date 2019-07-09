@@ -28,6 +28,10 @@ function createServer() {
     const responseHandler = require('./lib/responseHandler');
     const {checkAcceptsHeaders} = require('./lib/routeUtils');
 
+    const config = getConfig();
+    const mainConfig = config.main || {};
+    const serverConfig = mainConfig.server || {requestSizeLimit: '1mb'};
+
     apps.main = express();
     apps.preMiddleware = express();
     apps.public.main = express();
@@ -71,8 +75,8 @@ function createServer() {
         next();
     });
 
-    apps.main.use(bodyParser.json());
-    apps.main.use(bodyParser.urlencoded({extended: true}));
+    apps.main.use(bodyParser.json({limit: serverConfig.requestSizeLimit}));
+    apps.main.use(bodyParser.urlencoded({extended: true, limit: serverConfig.requestSizeLimit}));
 
     apps.main.use(passport.initialize());
     apps.main.use(passport.session());
