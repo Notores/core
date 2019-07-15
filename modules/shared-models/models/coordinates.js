@@ -1,5 +1,7 @@
 const {MongoSchema} = require('./../../../index');
-const Coordinates = new MongoSchema('Coordinates', {
+const mongoose = require('mongoose');
+
+const CoordinatesSchema = new mongoose.Schema({
     type: {
         type: String,
         enum: ['Point'],
@@ -7,19 +9,23 @@ const Coordinates = new MongoSchema('Coordinates', {
         default: 'Point'
     },
     coordinates: {
-        type: [Number],
-        required: true
+        type: [Number]
     }
-}, {}, true);
+}, {
+    minimize: false,
+    strict: false,
+    timestamps: {createdOn: 'createdOn', updatedOn: 'updatedOn'}
+});
 
-Coordinates.fromObject = (coords) => {
+const Coordinates = new MongoSchema('Coordinates', CoordinatesSchema);
+Coordinates.statics.fromObject = (coords) => {
     if(coords.lat && coords.lng)
-        return new Coordinates({coordinates:[coords.lat, coords.lng]});
+        return new Coordinates.model({coordinates:[coords.lat, coords.lng]});
     if(coords.lat && coords.lon)
-        return new Coordinates({coordinates:[coords.lat, coords.lon]});
+        return new Coordinates.model({coordinates:[coords.lat, coords.lon]});
     if(coords.latitude && coords.longitude)
-        return new Coordinates({coordinates:[coords.latitude, coords.longitude]});
+        return new Coordinates.model({coordinates:[coords.latitude, coords.longitude]});
     throw new Error('Invalid coordinates object');
-}
-
+};
+Coordinates.loadModel();
 module.exports = Coordinates;
