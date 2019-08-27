@@ -1,4 +1,4 @@
-export function selectDatabase(): any; // For testing purposes
-export function connect(): Promise<any>;
-
-export function database(): any;
+export declare function selectDatabase(): any;
+export declare function connect(): Promise<any>;
+export declare function getConnection(): any;
+//# sourceMappingURL=database.d.ts.map
