@@ -1,39 +1,48 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const { join } = require('path');
+import Module = NodeJS.Module;
+
+export interface IModuleListing {
+    name: string,
+    absolutePath: string,
+}
+
+const {join} = require('path');
 const logger = require('./logger')(module);
-const { getPackage } = require('./lib/config');
-const baseModules = [
-    { name: '@notores/user', absolutePath: './modules/user' },
-    { name: '@notores/shared-models', absolutePath: './modules/shared-models' },
+const {getPackage} = require('./lib/config');
+
+const baseModules: IModuleListing[] = [
+    {name: '@notores/user', absolutePath: './modules/user'},
+    {name: '@notores/shared-models', absolutePath: './modules/shared-models'},
 ];
-const modules = [];
-function getModule(moduleName) {
+
+const modules: IModuleListing[] = [];
+
+export function getModule(moduleName: string): Module | any {
     if (!moduleName)
         throw new Error('getModule was called without a value for moduleName');
+
     try {
-        const registeredModule = modules.find(mod => mod.name === moduleName);
+        const registeredModule: IModuleListing | undefined = modules.find(mod => mod.name === moduleName);
         let mod;
         if (registeredModule) {
             mod = require(registeredModule.absolutePath);
-        }
-        else
+        } else
             mod = require(moduleName);
         mod.installed = true;
         return mod;
-    }
-    catch (e) {
+    } catch (e) {
         return {
             installed: false
         };
     }
 }
-exports.getModule = getModule;
-function loadModule(name, path) {
+
+export function loadModule(name: string, path: string): Module | any {
     const result = getModule(name);
+
     if (!result.installed) {
         if (!path)
             path = name;
+
         if (path.indexOf(':root') === 0) {
             const rootDir = process.cwd();
             path = join(rootDir, path.replace(':root', ''));
@@ -43,11 +52,10 @@ function loadModule(name, path) {
         const mod = require(path);
         if (mod.init)
             mod.init();
-        modules.push({ name, absolutePath: path });
+        modules.push({name, absolutePath: path});
         mod.installed = true;
         return mod;
-    }
-    catch (e) {
+    } catch (e) {
         logger.error(`Failed loading module ${name}: ${e.message}`);
         logger.error(e.stack);
         return {
@@ -55,26 +63,29 @@ function loadModule(name, path) {
         };
     }
 }
-exports.loadModule = loadModule;
-function isIModuleListing(object) {
+
+export function isIModuleListing(object: any): object is IModuleListing {
     return object;
 }
-exports.isIModuleListing = isIModuleListing;
-function loadModules() {
+
+export function loadModules(): void {
     const packageNotoresConfig = getPackage('notores');
-    let mods = [...baseModules];
+    let mods: IModuleListing[] = [...baseModules];
+
     if (packageNotoresConfig.hasOwnProperty('modules') && packageNotoresConfig.modules.length > 0) {
         mods.push(...packageNotoresConfig.modules);
     }
-    mods = mods.map((mod) => {
+
+    mods = mods.map((mod: IModuleListing | string): IModuleListing => {
         if (isIModuleListing(mod))
             return mod;
-        return { name: mod, absolutePath: mod };
+
+        return {name: mod, absolutePath: mod};
     });
-    mods.forEach(({ name, absolutePath }) => loadModule(name, absolutePath));
+
+    mods.forEach(({name, absolutePath}) => loadModule(name, absolutePath));
 }
-exports.loadModules = loadModules;
-function getModulesList() {
+
+export function getModulesList(): IModuleListing[] {
     return modules;
 }
-exports.getModulesList = getModulesList;

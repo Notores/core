@@ -1,2 +1,8 @@
 setupJest.js
 *.env
+website/
+logs/
+docs/
+coverage/
+yarn-error.log
+

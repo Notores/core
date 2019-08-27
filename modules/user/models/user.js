@@ -3,7 +3,8 @@ const logger = require('./../../../logger')(module);
 const bcrypt = require('bcrypt');
 const defaultSaltRounds = 10;
 
-const User = new MongoSchema('User', {
+const User = new MongoSchema('User',
+    {
         // username: {type: String, required: false, unique: false},
         email: {type: String, required: true, unique: true, index: true},
         password: {type: String, required: false},
@@ -33,6 +34,11 @@ User.statics.getUsernameField = function () {
     return authenticationConfig.usernameField;
 };
 
+/**
+ * Encrypts a string like a password  using bcrypt
+ * @param {String} str The string to encrypt
+ * @return {Promise<String>} Promise with an encrytped string on resolve
+ */
 User.statics.encryptString = async function (str) {
     const mainConfig = getConfig('main');
     const saltRounds = mainConfig.hasOwnProperty('error') ? defaultSaltRounds : mainConfig.authentication.saltRounds
@@ -82,6 +88,7 @@ User.statics.register = async function (input) {
 
     return await User.model.getUserById(user.id);
 };
+
 
 User.statics.findUserByUsernameField = async function (email) {
     const usernameField = User.model.getUsernameField();

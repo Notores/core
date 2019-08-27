@@ -1,36 +1,13 @@
-const {getConfig, writeConfig, getPackage} = require('./lib/config');
-const database = require('./database');
-const ModuleHandler = require('./ModuleHandler');
-const logger = require('./logger');
-const Locals = require('./lib/Locals').Locals;
-const MongoSchema = require('./lib/MongoSchema');
-const NotoresModule = require('./lib/NotoresModule');
-const {responseHandler, htmlResponder, jsonResponder} = require('./lib/responseHandler');
-const {createServer, getServers, startServer} = require('./server');
-const {routeWithHandle, middlewareForRouter, addRouteToRegistry, getRegistry, handleActive, checkEmptyParams, checkParamIsObjectId, checkInput} = require('./lib/routeUtils');
-
-module.exports = {
-    checkEmptyParams,
-    checkParamIsObjectId,
-    checkInput,
-    database,
-    getConfig,
-    writeConfig,
-    getPackage,
-    getModule: ModuleHandler.getModule,
-    Locals,
-    logger,
-    MongoSchema,
-    NotoresModule,
-    responseHandler,
-    htmlResponder,
-    jsonResponder,
-    routeWithHandle,
-    middlewareForRouter,
-    addRouteToRegistry,
-    getRegistry,
-    handleActive,
-    createServer,
-    getServers,
-    startServer,
-};
+"use strict";
+var _a, _b, _c, _d;
+Object.defineProperty(exports, "__esModule", { value: true });
+_a = require('./lib/config'), exports.getConfig = _a.getConfig, exports.writeConfig = _a.writeConfig, exports.getPackage = _a.getPackage;
+exports.database = require('./database');
+exports.ModuleHandler = require('./ModuleHandler');
+exports.logger = require('./logger');
+exports.Locals = require('./lib/Locals').Locals;
+exports.MongoSchema = require('./lib/MongoSchema');
+exports.NotoresModule = require('./lib/NotoresModule');
+_b = require('./lib/responseHandler'), exports.responseHandler = _b.responseHandler, exports.htmlResponder = _b.htmlResponder, exports.jsonResponder = _b.jsonResponder;
+_c = require('./server'), exports.createServer = _c.createServer, exports.getServers = _c.getServers, exports.startServer = _c.startServer;
+_d = require('./lib/routeUtils'), exports.handleActive = _d.handleActive, exports.updateHandleActive = _d.updateHandleActive, exports.routeWithHandle = _d.routeWithHandle, exports.middlewareForRouter = _d.middlewareForRouter, exports.addRouteToRegistry = _d.addRouteToRegistry, exports.getRegistry = _d.getRegistry, exports.checkEmptyParams = _d.checkEmptyParams, exports.checkParamIsObjectId = _d.checkParamIsObjectId, exports.checkInput = _d.checkInput;
