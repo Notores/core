@@ -65,7 +65,7 @@ export function loadModule(name: string, path: string): Module | any {
 }
 
 export function isIModuleListing(object: any): object is IModuleListing {
-    return object;
+    return object.hasOwnProperty('name');
 }
 
 export function loadModules(): void {
@@ -77,8 +77,9 @@ export function loadModules(): void {
     }
 
     mods = mods.map((mod: IModuleListing | string): IModuleListing => {
-        if (isIModuleListing(mod))
+        if (isIModuleListing(mod)) {
             return mod;
+        }
 
         return {name: mod, absolutePath: mod};
     });

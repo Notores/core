@@ -1,6 +1,7 @@
 export declare const getConfig: any, writeConfig: any, getPackage: any;
 export declare const database: any;
 export declare const ModuleHandler: any;
+export declare const getModule: any, loadModule: any, isIModuleListing: any, loadModules: any, getModulesList: any;
 export declare const logger: any;
 export declare const Locals: any;
 export declare const MongoSchema: any;

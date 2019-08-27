@@ -1,13 +1,14 @@
 "use strict";
-var _a, _b, _c, _d;
+var _a, _b, _c, _d, _e;
 Object.defineProperty(exports, "__esModule", { value: true });
 _a = require('./lib/config'), exports.getConfig = _a.getConfig, exports.writeConfig = _a.writeConfig, exports.getPackage = _a.getPackage;
 exports.database = require('./database');
 exports.ModuleHandler = require('./ModuleHandler');
+_b = require('ModuleHandler'), exports.getModule = _b.getModule, exports.loadModule = _b.loadModule, exports.isIModuleListing = _b.isIModuleListing, exports.loadModules = _b.loadModules, exports.getModulesList = _b.getModulesList;
 exports.logger = require('./logger');
 exports.Locals = require('./lib/Locals').Locals;
 exports.MongoSchema = require('./lib/MongoSchema');
 exports.NotoresModule = require('./lib/NotoresModule');
-_b = require('./lib/responseHandler'), exports.responseHandler = _b.responseHandler, exports.htmlResponder = _b.htmlResponder, exports.jsonResponder = _b.jsonResponder;
-_c = require('./server'), exports.createServer = _c.createServer, exports.getServers = _c.getServers, exports.startServer = _c.startServer;
-_d = require('./lib/routeUtils'), exports.handleActive = _d.handleActive, exports.updateHandleActive = _d.updateHandleActive, exports.routeWithHandle = _d.routeWithHandle, exports.middlewareForRouter = _d.middlewareForRouter, exports.addRouteToRegistry = _d.addRouteToRegistry, exports.getRegistry = _d.getRegistry, exports.checkEmptyParams = _d.checkEmptyParams, exports.checkParamIsObjectId = _d.checkParamIsObjectId, exports.checkInput = _d.checkInput;
+_c = require('./lib/responseHandler'), exports.responseHandler = _c.responseHandler, exports.htmlResponder = _c.htmlResponder, exports.jsonResponder = _c.jsonResponder;
+_d = require('./server'), exports.createServer = _d.createServer, exports.getServers = _d.getServers, exports.startServer = _d.startServer;
+_e = require('./lib/routeUtils'), exports.handleActive = _e.handleActive, exports.updateHandleActive = _e.updateHandleActive, exports.routeWithHandle = _e.routeWithHandle, exports.middlewareForRouter = _e.middlewareForRouter, exports.addRouteToRegistry = _e.addRouteToRegistry, exports.getRegistry = _e.getRegistry, exports.checkEmptyParams = _e.checkEmptyParams, exports.checkParamIsObjectId = _e.checkParamIsObjectId, exports.checkInput = _e.checkInput;

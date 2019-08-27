@@ -1,6 +1,7 @@
 export const {getConfig, writeConfig, getPackage} = require('./lib/config');
 export const database = require('./database');
 export const ModuleHandler = require('./ModuleHandler');
+export const {getModule, loadModule, isIModuleListing, loadModules, getModulesList} = require('ModuleHandler');
 export const logger = require('./logger');
 export const Locals = require('./lib/Locals').Locals;
 export const MongoSchema = require('./lib/MongoSchema');

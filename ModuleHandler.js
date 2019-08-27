@@ -57,7 +57,7 @@ function loadModule(name, path) {
 }
 exports.loadModule = loadModule;
 function isIModuleListing(object) {
-    return object;
+    return object.hasOwnProperty('name');
 }
 exports.isIModuleListing = isIModuleListing;
 function loadModules() {
@@ -67,8 +67,9 @@ function loadModules() {
         mods.push(...packageNotoresConfig.modules);
     }
     mods = mods.map((mod) => {
-        if (isIModuleListing(mod))
+        if (isIModuleListing(mod)) {
             return mod;
+        }
         return { name: mod, absolutePath: mod };
     });
     mods.forEach(({ name, absolutePath }) => loadModule(name, absolutePath));
