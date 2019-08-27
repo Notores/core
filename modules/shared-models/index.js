@@ -6,6 +6,8 @@ class NotoresSharedModelsModule extends NotoresModule {
         super.init();
         const Address = require('./models/address');
         this.setModel(Address.modelName, Address);
+        const Coordinates = require('./models/coordinates');
+        this.setModel(Coordinates.modelName, Coordinates);
     }
 }
 
