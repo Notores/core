@@ -1,33 +1,5 @@
-import { CheckInputObject, MiddlewareFunction } from "../Types";
 import { NextFunction, Request, Response } from "express-serve-static-core";
-export declare const enum ParamsOrBodyEnum {
-    params = "params",
-    body = "body"
-}
-export declare const enum MiddlewareForRouterLevelEnum {
-    public = "public",
-    private = "private",
-    main = "main"
-}
-export interface RouteWithHandleSettings {
-    method?: string;
-    accepts?: string[];
-    authenticated?: Boolean;
-    admin?: Boolean;
-    roles?: string[];
-}
-export interface MiddlewareForRouterSettings {
-    when?: string;
-    accepts?: string[];
-    path?: string;
-    level?: MiddlewareForRouterLevelEnum;
-}
-export interface RouteRegistryObject {
-    handle: string;
-    path: string;
-    method: string;
-    active: Boolean;
-}
+import { MiddlewareFunction, IRouteRegistryObject, IRouteWithHandleSettings, IMiddlewareForRouterSettings, ParamsOrBodyEnum, ICheckInputObject } from "../Types";
 /**
  * Middleware for enable deactivating routes
  * @param {string} handle Name of the handle (e.g. notores-login)
@@ -62,18 +34,18 @@ export declare function addRouteToRegistry(handle: string, path: string, method:
  * @param {Array<String>} options.roles Any roles the user should have
  *
  */
-export declare function routeWithHandle(handle: string, path: string, middlewares?: MiddlewareFunction[], { method, accepts, authenticated, admin, roles }?: RouteWithHandleSettings): any;
+export declare function routeWithHandle(handle: string, path: string, middlewares?: MiddlewareFunction[], { method, accepts, authenticated, admin, roles }?: IRouteWithHandleSettings): any;
 /**
  * Creates middlewares for a router (public vs private). This uses the express' app.use function opposed to the ```routeWithHandle``` which uses ```app[method]```
  * @param {Array<MiddlewareFunction>|MiddlewareFunction} middlewares Middleware functions as accepted by Express. Each middleware function must end by calling ```next```. This enables the notores framework to handle the function graciously
- * @param {MiddlewareForRouterSettings} options Middleware options
+ * @param {IMiddlewareForRouterSettings} options Middleware options
  * @param {String} options.when Before or after the main routers. Optional values are ```pre``` and ```post```
  * @param {Array<String>} options.accepts Checks the ```Accept:``` header
  * @param {String} options.path The URL for this handle (e.g. /login)
  * @param {String} options.level Public or Private. Optional values are ```public``` and ```private```
  * @example middlewareForRouter([PaymentRouter.postPaymentSendMail,], {when: 'post', path: '/payment'});
  */
-export declare function middlewareForRouter(middlewares?: MiddlewareFunction | MiddlewareFunction[], { when, accepts, path, level }?: MiddlewareForRouterSettings): any;
+export declare function middlewareForRouter(middlewares?: MiddlewareFunction | MiddlewareFunction[], { when, accepts, path, level }?: IMiddlewareForRouterSettings): any;
 /**
  * Checks if the the
  * @param headers
@@ -85,7 +57,7 @@ export declare const checkAcceptsHeaders: (headers: string | string[], setRespon
  * Returns the handle registry
  * @return {Array<Object>}
  */
-export declare function getRegistry(): RouteRegistryObject[];
+export declare function getRegistry(): IRouteRegistryObject[];
 /**
  *
  * @param req
@@ -95,5 +67,5 @@ export declare function getRegistry(): RouteRegistryObject[];
  */
 export declare function checkEmptyParams(req: Request, res: Response, next: NextFunction): void;
 export declare function checkParamIsObjectId(paramName: string): MiddlewareFunction;
-export declare function checkInput(toCheckArr?: CheckInputObject | CheckInputObject[], paramsOrBody?: ParamsOrBodyEnum): MiddlewareFunction;
+export declare function checkInput(toCheckArr?: ICheckInputObject | ICheckInputObject[], paramsOrBody?: ParamsOrBodyEnum): MiddlewareFunction;
 //# sourceMappingURL=routeUtils.d.ts.map

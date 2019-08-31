@@ -1,50 +1,16 @@
-import {CheckInputObject, MiddlewareFunction} from "../Types";
 import {NextFunction, Request, Response} from "express-serve-static-core";
-
-export const enum ParamsOrBodyEnum {
-    params = 'params',
-    body = 'body',
-}
-
-export const enum MiddlewareForRouterLevelEnum {
-    public = 'public',
-    private = 'private',
-    main = 'main',
-}
-
-export interface RouteWithHandleSettings {
-    method?: string,
-    accepts?: string[],
-    authenticated?: Boolean,
-    admin?: Boolean,
-    roles?: string[],
-}
-
-export interface MiddlewareForRouterSettings {
-    when?: string,
-    accepts?: string[],
-    path?: string,
-    level?: MiddlewareForRouterLevelEnum,
-}
-
-export interface RouteRegistryObject {
-    handle: string,
-    path: string,
-    method: string,
-    active: Boolean,
-}
-
-
-/**
- * @module {Module} lib/routeUtils
- * @parent lib
- */
+import {
+    MiddlewareFunction, IRouteRegistryObject, IRouteWithHandleSettings, MiddlewareForRouterLevelEnum,
+    IMiddlewareForRouterSettings,
+    ParamsOrBodyEnum,
+    ICheckInputObject,
+} from "../Types";
 
 const {join} = require('path');
 const mongoose = require('mongoose');
 const {responseHandler} = require("./responseHandler");
 const logger = require('../logger')(module);
-const registry: RouteRegistryObject[] = [];
+const registry: IRouteRegistryObject[] = [];
 
 /**
  * Middleware for enable deactivating routes
@@ -71,7 +37,7 @@ export function handleActive(handle: string): MiddlewareFunction {
  * @param {boolean} active New active status for given handle
  */
 export function updateHandleActive(handle: string, active: boolean): void {
-    const registryObject: RouteRegistryObject | undefined = registry.find(entry => entry.handle === handle);
+    const registryObject: IRouteRegistryObject | undefined = registry.find(entry => entry.handle === handle);
     if (registryObject)
         registryObject.active = active;
     else
@@ -102,7 +68,7 @@ export function addRouteToRegistry(handle: string, path: string, method: string)
  * @param {Array<String>} options.roles Any roles the user should have
  *
  */
-export function routeWithHandle(handle: string, path: string, middlewares: MiddlewareFunction[] = [], {method = 'get', accepts = ['json'], authenticated = false, admin = false, roles = []}: RouteWithHandleSettings = {}) {
+export function routeWithHandle(handle: string, path: string, middlewares: MiddlewareFunction[] = [], {method = 'get', accepts = ['json'], authenticated = false, admin = false, roles = []}: IRouteWithHandleSettings = {}) {
     const server = require('../server');
 
     if (!Array.isArray(middlewares))
@@ -135,14 +101,14 @@ export function routeWithHandle(handle: string, path: string, middlewares: Middl
 /**
  * Creates middlewares for a router (public vs private). This uses the express' app.use function opposed to the ```routeWithHandle``` which uses ```app[method]```
  * @param {Array<MiddlewareFunction>|MiddlewareFunction} middlewares Middleware functions as accepted by Express. Each middleware function must end by calling ```next```. This enables the notores framework to handle the function graciously
- * @param {MiddlewareForRouterSettings} options Middleware options
+ * @param {IMiddlewareForRouterSettings} options Middleware options
  * @param {String} options.when Before or after the main routers. Optional values are ```pre``` and ```post```
  * @param {Array<String>} options.accepts Checks the ```Accept:``` header
  * @param {String} options.path The URL for this handle (e.g. /login)
  * @param {String} options.level Public or Private. Optional values are ```public``` and ```private```
  * @example middlewareForRouter([PaymentRouter.postPaymentSendMail,], {when: 'post', path: '/payment'});
  */
-export function middlewareForRouter(middlewares: MiddlewareFunction | MiddlewareFunction[] = [], {when = 'pre', accepts = ['json', 'html'], path, level = MiddlewareForRouterLevelEnum.public}: MiddlewareForRouterSettings = {}) {
+export function middlewareForRouter(middlewares: MiddlewareFunction | MiddlewareFunction[] = [], {when = 'pre', accepts = ['json', 'html'], path, level = MiddlewareForRouterLevelEnum.public}: IMiddlewareForRouterSettings = {}) {
     const server = require('../server');
 
     if (!Array.isArray(middlewares))
@@ -212,7 +178,7 @@ export const checkAcceptsHeaders = (headers: string | string[], setResponseType:
  * Returns the handle registry
  * @return {Array<Object>}
  */
-export function getRegistry(): RouteRegistryObject[] {
+export function getRegistry(): IRouteRegistryObject[] {
     return registry;
 }
 
@@ -244,9 +210,9 @@ export function checkParamIsObjectId(paramName: string): MiddlewareFunction {
     }
 }
 
-export function checkInput(toCheckArr: CheckInputObject | CheckInputObject[] = [], paramsOrBody: ParamsOrBodyEnum = ParamsOrBodyEnum.params): MiddlewareFunction {
+export function checkInput(toCheckArr: ICheckInputObject | ICheckInputObject[] = [], paramsOrBody: ParamsOrBodyEnum = ParamsOrBodyEnum.params): MiddlewareFunction {
     return function checkParams(req, res, next) {
-        let arr: CheckInputObject[];
+        let arr: ICheckInputObject[];
         if (!Array.isArray(toCheckArr)) {
             arr = [toCheckArr];
         } else {

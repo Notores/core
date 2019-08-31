@@ -1,4 +1,5 @@
 import Module = NodeJS.Module;
+import {isIModuleListing} from "./lib/helperFunctions";
 
 export interface IModuleListing {
     name: string,
@@ -62,10 +63,6 @@ export function loadModule(name: string, path: string): Module | any {
             installed: false
         };
     }
-}
-
-export function isIModuleListing(object: any): object is IModuleListing {
-    return object.hasOwnProperty('name');
 }
 
 export function loadModules(): void {

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const helperFunctions_1 = require("./lib/helperFunctions");
 const { join } = require('path');
 const logger = require('./logger')(module);
 const { getPackage } = require('./lib/config');
@@ -56,10 +57,6 @@ function loadModule(name, path) {
     }
 }
 exports.loadModule = loadModule;
-function isIModuleListing(object) {
-    return object.hasOwnProperty('name');
-}
-exports.isIModuleListing = isIModuleListing;
 function loadModules() {
     const packageNotoresConfig = getPackage('notores');
     let mods = [...baseModules];
@@ -67,7 +64,7 @@ function loadModules() {
         mods.push(...packageNotoresConfig.modules);
     }
     mods = mods.map((mod) => {
-        if (isIModuleListing(mod)) {
+        if (helperFunctions_1.isIModuleListing(mod)) {
             return mod;
         }
         return { name: mod, absolutePath: mod };

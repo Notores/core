@@ -1,23 +1,26 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+import {IDefaultConfigObject, IErrorObject, INotoresConfig} from "../../Types";
+
 const assign = require('assign-deep');
-const { readFileSync, writeFileSync } = require('fs');
+const {readFileSync, writeFileSync} = require('fs');
 const logger = require('../../logger')(module);
-const { join } = require('path');
+const {join} = require('path');
+
 const rootDir = process.cwd();
 const notoresConfigFileName = 'notores.json';
-const configDefaults = [];
-function addConfigDefault(obj) {
+
+const configDefaults: IDefaultConfigObject[] = [];
+
+export function addConfigDefault(obj: IDefaultConfigObject): void {
     configDefaults.push(obj);
 }
-exports.addConfigDefault = addConfigDefault;
-function getConfigDefaults() {
+
+export function getConfigDefaults(): IDefaultConfigObject[] {
     return configDefaults;
 }
-exports.getConfigDefaults = getConfigDefaults;
-function getDefaultConfig() {
+
+export function getDefaultConfig(): Object {
     const obj = {};
-    configDefaults.forEach((defaultConfigObject) => {
+    configDefaults.forEach((defaultConfigObject:IDefaultConfigObject )=> {
         const conf = {};
         // @ts-ignore
         conf[defaultConfigObject.key] = defaultConfigObject.value;
@@ -25,7 +28,7 @@ function getDefaultConfig() {
     });
     return obj;
 }
-exports.getDefaultConfig = getDefaultConfig;
+
 /**
  * Loads the JSON file through readFileSync on the given path. It loads the file with encoding 'utf-8'
  * @param {String} filepath The filepath to load the JSON file fromt
@@ -33,35 +36,36 @@ exports.getDefaultConfig = getDefaultConfig;
  * @return {Object|{error: string}}
  * @example const result = getJsonFile(`${process.cwd()}/package.j son`, authors);
  */
-function getJsonFile(filepath, key) {
+export function getJsonFile(filepath: string, key?: string): INotoresConfig | IErrorObject {
     try {
         const jsonFileString = readFileSync(filepath, 'utf-8');
         const jsonFile = JSON.parse(jsonFileString);
         if (key)
             return jsonFile[key];
         return jsonFile;
-    }
-    catch (e) {
+    } catch (e) {
         const errorMessage = `Error loading file "${filepath}". Error: ${e.message}`;
         logger.error(errorMessage);
         return {
             error: errorMessage
-        };
+        }
     }
 }
-exports.getJsonFile = getJsonFile;
-function getConfig(key) {
+
+export function getConfig(key?: string): INotoresConfig {
     const configFile = getJsonFile(join(rootDir, './', notoresConfigFileName), key);
-    const config = getDefaultConfig();
+    const config: Object = getDefaultConfig();
+
     assign(config, configFile);
-    return config;
+
+    return <INotoresConfig>config;
 }
-exports.getConfig = getConfig;
-function getPackage(key) {
+
+export function getPackage(key: string): Object {
     return getJsonFile(join(rootDir, './', 'package.json'), key);
 }
-exports.getPackage = getPackage;
-function writeConfig(obj, key) {
+
+export function writeConfig(obj: Object, key: string): INotoresConfig | IErrorObject {
     const notoresConfig = getConfig();
     let newConfig;
     if (key) {
@@ -69,27 +73,25 @@ function writeConfig(obj, key) {
             ...notoresConfig
         };
         // @ts-ignore
-        newConfig[key] = { ...newConfig[key],
+        newConfig[key] = {...newConfig[key],
             ...obj,
         };
-    }
-    else {
+    } else {
         newConfig = {
             ...notoresConfig,
             ...obj,
         };
     }
+
     try {
         writeFileSync(join(rootDir, './', notoresConfigFileName), JSON.stringify(newConfig, null, 4));
         logger.info('Updated notores config');
         return newConfig;
-    }
-    catch (e) {
+    } catch (e) {
         const errorMessage = `Error writing Notores config ${e.message}`;
         logger.error(errorMessage);
         return {
             error: errorMessage
-        };
+        }
     }
 }
-exports.writeConfig = writeConfig;
