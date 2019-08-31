@@ -61,7 +61,7 @@ declare global {
         export interface Request {
             user?: IAuthenticatedUser,
             isAuthenticated: IsAuthenticatedFunction,
-            notores: Object,
+            notores: INotoresConfig,
             session: ISessionObject,
             login: Function,
         }
