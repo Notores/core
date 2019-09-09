@@ -8,6 +8,8 @@ declare global {
         }
         interface IAuthenticatedUser {
         }
+        interface IAuthenticatedRequest {
+        }
     }
 }
 export interface IErrorObject {
@@ -67,6 +69,9 @@ export interface ISessionObject {
 }
 export interface IAuthenticatedUser {
     roles: string[];
+}
+export interface IAuthenticatedRequest extends Express.Request {
+    user: IAuthenticatedUser;
 }
 export declare const enum ParamsOrBodyEnum {
     params = "params",
