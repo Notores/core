@@ -8,7 +8,8 @@ declare global {
         }
         interface IAuthenticatedUser {
         }
-        interface IAuthenticatedRequest {
+        interface IAuthenticatedRequest extends Request {
+            user: Notores.IAuthenticatedUser;
         }
     }
 }
@@ -56,7 +57,7 @@ export interface INotoresConfig {
 declare global {
     namespace Express {
         interface Request {
-            user?: IAuthenticatedUser;
+            user?: Notores.IAuthenticatedUser;
             isAuthenticated: IsAuthenticatedFunction;
             notores: Object;
             session: ISessionObject;
@@ -69,9 +70,6 @@ export interface ISessionObject {
 }
 export interface IAuthenticatedUser {
     roles: string[];
-}
-export interface IAuthenticatedRequest extends Express.Request {
-    user: IAuthenticatedUser;
 }
 export declare const enum ParamsOrBodyEnum {
     params = "params",
