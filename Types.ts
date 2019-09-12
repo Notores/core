@@ -118,4 +118,4 @@ export interface IRouteRegistryObject {
 }
 
 export declare type IsAuthenticatedFunction = () => Boolean;
-export declare type MiddlewareFunction = (req: Request, res: Response, next: NextFunction) => Promise<any> | void;
+export declare type MiddlewareFunction = (req: Request | Notores.IAuthenticatedRequest, res: Response, next: NextFunction) => Promise<any> | void;
