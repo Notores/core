@@ -18,7 +18,7 @@ const Locals = require('./lib/Locals').Locals;
 const MongoSchema = require('./lib/MongoSchema');
 const NotoresModule = require('./lib/NotoresModule');
 
-export default {
+export {
     getConfig,
     writeConfig,
     getPackage,
