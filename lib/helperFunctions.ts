@@ -1,6 +1,7 @@
 import {IModuleListing} from "../ModuleHandler";
+import {IErrorObject} from "../Types";
 
-export function isIErrorObject(obj: any) {
+export function isIErrorObject(obj: any): obj is IErrorObject {
     return obj.hasOwnProperty('error');
 }
 
