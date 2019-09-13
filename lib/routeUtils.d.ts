@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express-serve-static-core";
-import { MiddlewareFunction, IRouteRegistryObject, IRouteWithHandleSettings, IMiddlewareForRouterSettings, ParamsOrBodyEnum, ICheckInputObject } from "../Types";
+import { MiddlewareFunction, AuthenticatedMiddlewareFunction, IRouteRegistryObject, IRouteWithHandleSettings, IMiddlewareForRouterSettings, ParamsOrBodyEnum, ICheckInputObject } from "../Types";
 /**
  * Middleware for enable deactivating routes
  * @param {string} handle Name of the handle (e.g. notores-login)
@@ -32,9 +32,8 @@ export declare function addRouteToRegistry(handle: string, path: string, method:
  * @param {Boolean} options.authenticated Should the user be authenticated
  * @param {Boolean} options.admin Should the user have the admin role
  * @param {Array<String>} options.roles Any roles the user should have
- *
  */
-export declare function routeWithHandle(handle: string, path: string, middlewares?: MiddlewareFunction[], { method, accepts, authenticated, admin, roles }?: IRouteWithHandleSettings): any;
+export declare function routeWithHandle(handle: string, path: string, middlewares: Array<MiddlewareFunction | AuthenticatedMiddlewareFunction>, { method, accepts, authenticated, admin, roles }?: IRouteWithHandleSettings): any;
 /**
  * Creates middlewares for a router (public vs private). This uses the express' app.use function opposed to the ```routeWithHandle``` which uses ```app[method]```
  * @param {Array<MiddlewareFunction>|MiddlewareFunction} middlewares Middleware functions as accepted by Express. Each middleware function must end by calling ```next```. This enables the notores framework to handle the function graciously
@@ -45,7 +44,7 @@ export declare function routeWithHandle(handle: string, path: string, middleware
  * @param {String} options.level Public or Private. Optional values are ```public``` and ```private```
  * @example middlewareForRouter([PaymentRouter.postPaymentSendMail,], {when: 'post', path: '/payment'});
  */
-export declare function middlewareForRouter(middlewares?: MiddlewareFunction | MiddlewareFunction[], { when, accepts, path, level }?: IMiddlewareForRouterSettings): any;
+export declare function middlewareForRouter(middlewares: Array<MiddlewareFunction | AuthenticatedMiddlewareFunction>, { when, accepts, path, level }?: IMiddlewareForRouterSettings): any;
 /**
  * Checks if the the
  * @param headers

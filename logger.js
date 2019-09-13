@@ -24,3 +24,4 @@ function newLogger(callingModule) {
     });
 }
 exports.default = newLogger;
+module.exports = newLogger;

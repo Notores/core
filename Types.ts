@@ -4,12 +4,25 @@ import {IRouter} from "express-serve-static-core";
 declare global {
     namespace Notores {
         interface INotoresConfig {
+            error: string;
+            main: {
+                authentication: {
+                    usernameField: string;
+                    saltRounds: number;
+                };
+                jwt: {
+                    secretOrKey: string;
+                    issuer: string;
+                    audience: string;
+                };
+            };
         }
 
         interface ISessionObject {
         }
 
         interface IAuthenticatedUser {
+            roles: string[];
         }
 
         interface IAuthenticatedRequest extends Request {
@@ -49,21 +62,6 @@ export interface ICheckInputObject {
     type: Object;
 }
 
-export interface INotoresConfig {
-    error: string;
-    main: {
-        authentication: {
-            usernameField: string;
-            saltRounds: number;
-        };
-        jwt: {
-            secretOrKey: string;
-            issuer: string;
-            audience: string;
-        };
-    };
-}
-
 declare global {
     namespace Express {
         interface Request {
@@ -78,10 +76,6 @@ declare global {
 
 export interface ISessionObject {
     id: string;
-}
-
-export interface IAuthenticatedUser {
-    roles: string[];
 }
 
 export declare const enum ParamsOrBodyEnum {
@@ -118,4 +112,5 @@ export interface IRouteRegistryObject {
 }
 
 export declare type IsAuthenticatedFunction = () => Boolean;
-export declare type MiddlewareFunction = (req: Request | Notores.IAuthenticatedRequest, res: Response, next: NextFunction) => Promise<any> | void;
+export declare type AuthenticatedMiddlewareFunction = (req: Notores.IAuthenticatedRequest , res: Response, next: NextFunction) => Promise<any> | void;
+export declare type MiddlewareFunction = (req: Request, res: Response, next: NextFunction) => Promise<any> | void;

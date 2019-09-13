@@ -31,3 +31,4 @@ export default function newLogger(callingModule: Module): void {
         ]
     });
 }
+module.exports = newLogger;

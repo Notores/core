@@ -1,6 +1,8 @@
 import {NextFunction, Request, Response} from "express-serve-static-core";
 import {
-    MiddlewareFunction, IRouteRegistryObject, IRouteWithHandleSettings, MiddlewareForRouterLevelEnum,
+    MiddlewareFunction,
+    AuthenticatedMiddlewareFunction,
+    IRouteRegistryObject, IRouteWithHandleSettings, MiddlewareForRouterLevelEnum,
     IMiddlewareForRouterSettings,
     ParamsOrBodyEnum,
     ICheckInputObject,
@@ -66,9 +68,8 @@ export function addRouteToRegistry(handle: string, path: string, method: string)
  * @param {Boolean} options.authenticated Should the user be authenticated
  * @param {Boolean} options.admin Should the user have the admin role
  * @param {Array<String>} options.roles Any roles the user should have
- *
  */
-export function routeWithHandle(handle: string, path: string, middlewares: MiddlewareFunction[] = [], {method = 'get', accepts = ['json'], authenticated = false, admin = false, roles = []}: IRouteWithHandleSettings = {}) {
+export function routeWithHandle(handle: string, path: string, middlewares: Array<MiddlewareFunction | AuthenticatedMiddlewareFunction>, {method = 'get', accepts = ['json'], authenticated = false, admin = false, roles = []}: IRouteWithHandleSettings = {}) {
     const server = require('../server');
 
     if (!Array.isArray(middlewares))
@@ -108,7 +109,7 @@ export function routeWithHandle(handle: string, path: string, middlewares: Middl
  * @param {String} options.level Public or Private. Optional values are ```public``` and ```private```
  * @example middlewareForRouter([PaymentRouter.postPaymentSendMail,], {when: 'post', path: '/payment'});
  */
-export function middlewareForRouter(middlewares: MiddlewareFunction | MiddlewareFunction[] = [], {when = 'pre', accepts = ['json', 'html'], path, level = MiddlewareForRouterLevelEnum.public}: IMiddlewareForRouterSettings = {}) {
+export function middlewareForRouter(middlewares: Array<MiddlewareFunction | AuthenticatedMiddlewareFunction>, {when = 'pre', accepts = ['json', 'html'], path, level = MiddlewareForRouterLevelEnum.public}: IMiddlewareForRouterSettings = {}) {
     const server = require('../server');
 
     if (!Array.isArray(middlewares))
@@ -146,7 +147,7 @@ export function middlewareForRouter(middlewares: MiddlewareFunction | Middleware
 
 /**
  * Checks if the the
- * @param headers
+ * @param {string | string[] } headers Accepted Headers. E.g. 'application/json' || ['application/json', 'text/html']
  * @param setResponseType
  * @return {Function}
  */

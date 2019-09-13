@@ -1,4 +1,4 @@
-import { IDefaultConfigObject, IErrorObject, INotoresConfig } from "../../Types";
+import { IDefaultConfigObject, IErrorObject } from "../../Types";
 export declare function addConfigDefault(obj: IDefaultConfigObject): void;
 export declare function getConfigDefaults(): IDefaultConfigObject[];
 export declare function getDefaultConfig(): Object;
@@ -9,8 +9,8 @@ export declare function getDefaultConfig(): Object;
  * @return {Object|{error: string}}
  * @example const result = getJsonFile(`${process.cwd()}/package.j son`, authors);
  */
-export declare function getJsonFile(filepath: string, key?: string): INotoresConfig | IErrorObject;
-export declare function getConfig(key?: string): INotoresConfig;
+export declare function getJsonFile(filepath: string, key?: string): Notores.INotoresConfig | IErrorObject;
+export declare function getConfig(key?: string): Notores.INotoresConfig;
 export declare function getPackage(key: string): Object;
-export declare function writeConfig(obj: Object, key: string): INotoresConfig | IErrorObject;
+export declare function writeConfig(obj: Object, key: string): Notores.INotoresConfig | IErrorObject;
 //# sourceMappingURL=config.d.ts.map

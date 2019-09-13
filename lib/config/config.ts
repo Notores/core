@@ -1,4 +1,4 @@
-import {IDefaultConfigObject, IErrorObject, INotoresConfig} from "../../Types";
+import {IDefaultConfigObject, IErrorObject} from "../../Types";
 
 const assign = require('assign-deep');
 const {readFileSync, writeFileSync} = require('fs');
@@ -36,7 +36,7 @@ export function getDefaultConfig(): Object {
  * @return {Object|{error: string}}
  * @example const result = getJsonFile(`${process.cwd()}/package.j son`, authors);
  */
-export function getJsonFile(filepath: string, key?: string): INotoresConfig | IErrorObject {
+export function getJsonFile(filepath: string, key?: string): Notores.INotoresConfig | IErrorObject {
     try {
         const jsonFileString = readFileSync(filepath, 'utf-8');
         const jsonFile = JSON.parse(jsonFileString);
@@ -52,20 +52,20 @@ export function getJsonFile(filepath: string, key?: string): INotoresConfig | IE
     }
 }
 
-export function getConfig(key?: string): INotoresConfig {
+export function getConfig(key?: string): Notores.INotoresConfig {
     const configFile = getJsonFile(join(rootDir, './', notoresConfigFileName), key);
     const config: Object = getDefaultConfig();
 
     assign(config, configFile);
 
-    return <INotoresConfig>config;
+    return <Notores.INotoresConfig>config;
 }
 
 export function getPackage(key: string): Object {
     return getJsonFile(join(rootDir, './', 'package.json'), key);
 }
 
-export function writeConfig(obj: Object, key: string): INotoresConfig | IErrorObject {
+export function writeConfig(obj: Object, key: string): Notores.INotoresConfig | IErrorObject {
     const notoresConfig = getConfig();
     let newConfig;
     if (key) {
