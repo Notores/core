@@ -77,7 +77,10 @@ export function createServer(): IServer {
     // }));
 
     apps.main.use((req, res, next) => {
-        if (!req.session.id) {
+        if(!req.notores.main.useCookie)
+            return next();
+
+        if (req.session && !req.session.id) {
             const buf = crypto.randomBytes(16);
             req.session.id = buf.toString('hex');
             // console.log(req.wsSession);
