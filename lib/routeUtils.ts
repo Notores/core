@@ -147,7 +147,7 @@ export function middlewareForRouter(middlewares: Array<MiddlewareFunction | Auth
 
 /**
  * Checks if the the
- * @param {string | string[] } headers Accepted Headers. E.g. 'application/json' || ['application/json', 'text/html']
+ * @param {string | string[]} headers Accepted Headers. E.g. 'application/json' || ['application/json', 'text/html']
  * @param setResponseType
  * @return {Function}
  */

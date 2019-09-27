@@ -5,6 +5,7 @@ declare global {
         interface INotoresConfig {
             error: string;
             main: {
+                useCookie: boolean;
                 authentication: {
                     usernameField: string;
                     saltRounds: number;
@@ -58,7 +59,7 @@ declare global {
         interface Request {
             user?: Notores.IAuthenticatedUser;
             isAuthenticated: IsAuthenticatedFunction;
-            notores: Object;
+            notores: Notores.INotoresConfig;
             session: ISessionObject;
             login: Function;
         }

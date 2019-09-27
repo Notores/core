@@ -47,7 +47,7 @@ export declare function routeWithHandle(handle: string, path: string, middleware
 export declare function middlewareForRouter(middlewares: Array<MiddlewareFunction | AuthenticatedMiddlewareFunction>, { when, accepts, path, level }?: IMiddlewareForRouterSettings): any;
 /**
  * Checks if the the
- * @param headers
+ * @param {string | string[]} headers Accepted Headers. E.g. 'application/json' || ['application/json', 'text/html']
  * @param setResponseType
  * @return {Function}
  */

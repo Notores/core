@@ -40,16 +40,31 @@ function createServer() {
         req.notores = getConfig();
         next();
     });
-    apps.main.use(sessions({
-        cookieName: 'notores',
-        requestKey: 'session',
-        secret: process.env.COOKIE_SECRET,
-        duration: 20 * 7 * 24 * 60 * 60 * 1000,
-        activeDuration: 20 * 7 * 24 * 60 * 60 * 1000,
-        cookie: {
-            httpOnly: true,
+    apps.main.use((req, res, next) => {
+        if (req.notores.main.useCookie) {
+            return sessions({
+                cookieName: 'notores',
+                requestKey: 'session',
+                secret: process.env.COOKIE_SECRET,
+                duration: 20 * 7 * 24 * 60 * 60 * 1000,
+                activeDuration: 20 * 7 * 24 * 60 * 60 * 1000,
+                cookie: {
+                    httpOnly: true,
+                }
+            })(req, res, next);
         }
-    }));
+        return next();
+    });
+    // apps.main.use(sessions({
+    //     cookieName: 'notores', // cookie name dictates the key name added to the request object
+    //     requestKey: 'session', // changes the session key from req.cookieName to this (req.session)
+    //     secret: process.env.COOKIE_SECRET, // should be a large unguessable string
+    //     duration: 20 * 7 * 24 * 60 * 60 * 1000, // how long the session will stay valid in ms
+    //     activeDuration: 20 * 7 * 24 * 60 * 60 * 1000, // if expiresIn < activeDuration, the session will be extended by activeDuration milliseconds
+    //     cookie: {
+    //         httpOnly: true, // when true, cookie is not accessible from javascript
+    //     }
+    // }));
     apps.main.use((req, res, next) => {
         if (!req.session.id) {
             const buf = crypto.randomBytes(16);

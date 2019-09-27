@@ -93,6 +93,7 @@ module.exports = {
 addConfigDefault({
     key: 'main',
     value: {
+        useCookie: true,
         authentication: {
             usernameField: 'email',
             saltRounds: 10,
