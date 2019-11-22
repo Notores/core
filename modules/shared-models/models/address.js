@@ -23,7 +23,8 @@ if(config.main && config.main.google && config.main.google.addressRequiresCoordi
         if(!address.coordinates || !address.coordinates.coordinates || !address.coordinates.coordinates.length){
             const request = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURI(address.street)}+${encodeURI(address.number)}+${encodeURI(address.postalCode)}+${encodeURI(address.city)}&key=${config.main.google.apiKey}`);
             const response = await request.json();
-            address.coordinates = Coordinates.model.fromObject(response.results[0].geometry.location);
+            if(response && response.results && response.results.length)
+                address.coordinates = Coordinates.model.fromObject(response.results[0].geometry.location);
         }
     };
     AddressSchema.pre('save', pre);
