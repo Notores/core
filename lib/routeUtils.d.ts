@@ -20,7 +20,7 @@ export declare function updateHandleActive(handle: string, active: boolean): voi
  * @param {string} method The HTTP method for this handle (e.g. post)
  * @example addRouteToRegistry('notores-login', '/login', 'post);
  */
-export declare function addRouteToRegistry(handle: string, path: string, method: string): void;
+export declare function addRouteToRegistry(handle: string, path: string, method: string): boolean;
 /**
  * Create routes for your app with a handle
  * @param {String} handle Name of the handle (e.g. notores-login)

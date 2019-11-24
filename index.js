@@ -49,6 +49,8 @@ exports.updateHandleActive = routeUtils_1.updateHandleActive;
 const helperFunctions_1 = require("./lib/helperFunctions");
 exports.isIErrorObject = helperFunctions_1.isIErrorObject;
 exports.isIModuleListing = helperFunctions_1.isIModuleListing;
+const Module_1 = __importDefault(require("./Module"));
+exports.Module = Module_1.default;
 const Locals = require('./lib/Locals').Locals;
 exports.Locals = Locals;
 const MongoSchema = require('./lib/MongoSchema');
@@ -72,6 +74,7 @@ module.exports = {
     Locals,
     MongoSchema,
     NotoresModule,
+    Module: Module_1.default,
     responseHandler: responseHandler_1.responseHandler,
     htmlResponder: responseHandler_1.htmlResponder,
     jsonResponder: responseHandler_1.jsonResponder,

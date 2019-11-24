@@ -3,6 +3,7 @@ import {getServers} from './server';
 import {Request, NextFunction, Response, Application, IRouter} from "express";
 import log from './logger';
 import {addRouteToRegistry, getRegistry} from "./lib/routeUtils";
+
 const logger = log(module);
 
 export interface IRouteWithHandleSettings {
@@ -26,6 +27,10 @@ export default class Module {
     ) {
 
     }
+
+    init = () => {
+
+    };
 
     routeActiveGuard = (handle: string): MiddlewareFunction => (req: Request, res: Response, next: NextFunction) => {
         const registry: IRouteRegistryObject[] = getRegistry();
@@ -72,7 +77,7 @@ export default class Module {
         }
 
         const routeRegistryObject: IRouteRegistryObject = {path, handle, method, active: true};
-        if(!addRouteToRegistry(handle, path, method)){
+        if (!addRouteToRegistry(handle, path, method)) {
             // @ts-ignore
             logger.error(`ERROR: ${method}:${path} with handle ${handle} has not been added`);
             return;
