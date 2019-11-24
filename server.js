@@ -1,22 +1,26 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const routeUtils_1 = require("./lib/routeUtils");
-const express = require('express');
-const logger = require('./logger')(module);
+const express_1 = __importDefault(require("express"));
+const logger_1 = require("./logger");
+const logger = logger_1.initLogger(module);
 const apps = {
-    main: express(),
-    preMiddleware: express(),
+    main: express_1.default(),
+    preMiddleware: express_1.default(),
     public: {
-        main: express(),
-        preMiddleware: express(),
-        router: express(),
-        postMiddleware: express(),
+        main: express_1.default(),
+        preMiddleware: express_1.default(),
+        router: express_1.default(),
+        postMiddleware: express_1.default(),
     },
     private: {
-        main: express(),
-        preMiddleware: express(),
-        router: express(),
-        postMiddleware: express(),
+        main: express_1.default(),
+        preMiddleware: express_1.default(),
+        router: express_1.default(),
+        postMiddleware: express_1.default(),
     },
 };
 function createServer() {
@@ -55,16 +59,6 @@ function createServer() {
         }
         return next();
     });
-    // apps.main.use(sessions({
-    //     cookieName: 'notores', // cookie name dictates the key name added to the request object
-    //     requestKey: 'session', // changes the session key from req.cookieName to this (req.session)
-    //     secret: process.env.COOKIE_SECRET, // should be a large unguessable string
-    //     duration: 20 * 7 * 24 * 60 * 60 * 1000, // how long the session will stay valid in ms
-    //     activeDuration: 20 * 7 * 24 * 60 * 60 * 1000, // if expiresIn < activeDuration, the session will be extended by activeDuration milliseconds
-    //     cookie: {
-    //         httpOnly: true, // when true, cookie is not accessible from javascript
-    //     }
-    // }));
     apps.main.use((req, res, next) => {
         if (!req.notores.main.useCookie)
             return next();

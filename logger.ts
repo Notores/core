@@ -1,21 +1,20 @@
+import {createLogger, format, transports, Logger} from "winston";
+import path from "path";
+import moment from "moment";
 import Module = NodeJS.Module;
-
-const {createLogger, format, transports} = require('winston');
-const path = require('path');
-const moment = require('moment');
 
 const {combine, timestamp, label, printf} = format;
 
 const getLabel = function (callingModule: Module) {
     const parts = callingModule.filename.split(path.sep);
-    return path.join(parts[parts.length - 2], parts.pop());
+    return path.join(parts[parts.length - 2], parts.pop() || '');
 };
 
 const myFormat = printf((info: any) => {
     return `${moment(info.timestamp).format('YYYY-MM-DD HH:mm:sss')} [${info.label}] ${info.level}: ${info.message}`;
 });
 
-export default function newLogger(callingModule: Module): void {
+export default function newLogger(callingModule: Module): Logger {
     return createLogger({
         format: combine(
             label({label: getLabel(callingModule)}),
@@ -31,4 +30,5 @@ export default function newLogger(callingModule: Module): void {
         ]
     });
 }
+export const initLogger = newLogger;
 module.exports = newLogger;

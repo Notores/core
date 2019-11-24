@@ -1,83 +1,79 @@
-const logger = require('./../../logger')(module);
-const passport = require("passport");
-const LocalStrategy = require('passport-local').Strategy;
-const JwtStrategy = require('passport-jwt').Strategy;
-const ExtractJwt = require('passport-jwt').ExtractJwt;
-const {getConfig} = require('./../../index');
-
-const User = require('./models/user');
-const UserModel = User.model;
-
-passport.serializeUser(function (user, done) {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const logger_1 = __importDefault(require("./../../logger"));
+const passport_1 = __importDefault(require("passport"));
+const passport_local_1 = require("passport-local");
+const passport_jwt_1 = require("passport-jwt");
+const index_1 = require("./../../index");
+const user_1 = __importDefault(require("./models/user"));
+const logger = logger_1.default(module);
+const UserModel = user_1.default.model;
+passport_1.default.serializeUser(function (user, done) {
     done(null, user.id);
 });
-
-passport.deserializeUser(function (id, done) {
+passport_1.default.deserializeUser(function (id, done) {
     UserModel.getUserById(id)
-        .then(user => {
-            done(null, user);
-        })
-        .catch(err => {
-            done(err, null);
-        });
+        .then((user) => {
+        done(null, user);
+    })
+        .catch((err) => {
+        done(err, undefined);
+    });
 });
-
-const mainConfig = getConfig('main');
-
+const config = index_1.getConfig();
 const localOpts = {
     usernameField: 'email',
     passwordField: 'password',
-    ...mainConfig.authentication
+    ...config.main.authentication
 };
-
 const jwtOpts = {
-    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    ...mainConfig.jwt,
+    jwtFromRequest: passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
+    ...config.main.jwt,
 };
-
-passport.use(new LocalStrategy(localOpts, (email, password, done) => {
+passport_1.default.use(new passport_local_1.Strategy(localOpts, (email, password, done) => {
     UserModel.authenticate(email, password)
-        .then(user => {
-            return done(null, user);
-        })
-        .catch(error => {
-            logger.error(`LocalStrategy error: ${error}`);
-            return done(error, false);
-        });
+        .then((user) => {
+        return done(null, user);
+    })
+        .catch((error) => {
+        logger.error(`LocalStrategy error: ${error}`);
+        return done(error, undefined);
+    });
 }));
-
-passport.use(new JwtStrategy(jwtOpts, function (jwt_payload, done) {
+passport_1.default.use(new passport_jwt_1.Strategy(jwtOpts, function (jwt_payload, done) {
     UserModel.getUserById(jwt_payload.id)
-        .then(user => {
-            return done(null, user);
-        })
-        .catch(error => {
-            logger.error(`JwtStrategy error: ${error}`);
-            return done(error, false);
-        });
+        .then((user) => {
+        return done(null, user);
+    })
+        .catch((error) => {
+        logger.error(`JwtStrategy error: ${error}`);
+        return done(error, false);
+    });
 }));
-
 const authenticate = function authenticate(strategy) {
     return (req, res, next) => {
         if (req.isAuthenticated())
             return next();
-
-        passport.authenticate(strategy, (err, user, info) => {
+        passport_1.default.authenticate(strategy, (err, user, info) => {
             if (user.error) {
-                res.locals.setBody({error: user.error});
+                res.locals.setBody({ error: user.error });
                 return next('route');
-            } else if (user === false) {
-                res.locals.setBody({error: 'Something went wrong, please try again later.'});
+            }
+            else if (!user) {
+                res.locals.setBody({ error: 'Something went wrong, please try again later.' });
                 return next('route');
-            } else {
+            }
+            else {
                 return req.login(user, () => {
                     next();
                 });
             }
         })(req, res, next);
-    }
+    };
 };
-
 module.exports = {
     authenticate,
 };

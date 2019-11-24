@@ -1,7 +1,6 @@
+"use strict";
 const NotoresModule = require('./../../lib/NotoresModule');
-
 class NotoresSharedModelsModule extends NotoresModule {
-
     init() {
         super.init();
         const Address = require('./models/address');
@@ -10,5 +9,4 @@ class NotoresSharedModelsModule extends NotoresModule {
         this.setModel(Coordinates.modelName, Coordinates);
     }
 }
-
 module.exports = new NotoresSharedModelsModule();

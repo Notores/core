@@ -1,0 +1,1 @@
+{"version":3,"file":"HTTPNotAcceptedError.d.ts","sourceRoot":"","sources":["HTTPNotAcceptedError.ts"],"names":[],"mappings":"AAAA,cAAM,oBAAqB,SAAQ,KAAK;IACpC,OAAO,CAAC,QAAQ,CAAC,eAAe,CAAgB;gBAEpC,eAAe,EAAG,KAAK,CAAC,MAAM,CAAC,EAAE,OAAO,EAAG,MAAM;aAOzD,gBAAgB;aAIhB,OAAO;CAGd"}

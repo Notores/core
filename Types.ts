@@ -15,7 +15,11 @@ declare global {
                     secretOrKey: string;
                     issuer: string;
                     audience: string;
-                };
+                },
+                google: {
+                    addressRequiresCoordinates: boolean,
+                    apiKey: string
+                }
             };
         }
 
@@ -23,6 +27,7 @@ declare global {
         }
 
         interface IAuthenticatedUser {
+            id: string|number;
             roles: string[];
         }
 
@@ -63,20 +68,9 @@ export interface ICheckInputObject {
     type: Object;
 }
 
-declare global {
-    namespace Express {
-        interface Request {
-            user?: Notores.IAuthenticatedUser;
-            isAuthenticated: IsAuthenticatedFunction;
-            notores: Notores.INotoresConfig;
-            session: ISessionObject;
-            login: Function;
-        }
-    }
-}
-
 export interface ISessionObject {
-    id: string;
+    id: string|number;
+    jwt: string;
 }
 
 export declare const enum ParamsOrBodyEnum {
@@ -112,6 +106,20 @@ export interface IRouteRegistryObject {
     active: Boolean;
 }
 
+export interface StringKeyObject {
+    [key:string]: any
+}
+
+export interface MongooseConfig {
+    user: string,
+    pass: string,
+    host: string,
+    port: string,
+    database: string
+}
+
+
 export declare type IsAuthenticatedFunction = () => Boolean;
 export declare type AuthenticatedMiddlewareFunction = (req: Notores.IAuthenticatedRequest , res: Response, next: NextFunction) => Promise<any> | void;
 export declare type MiddlewareFunction = (req: Request, res: Response, next: NextFunction) => Promise<any> | void;
+

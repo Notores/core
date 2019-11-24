@@ -1,9 +1,9 @@
 import {IServer} from "./Types";
-import {Application} from "express-serve-static-core";
 import {checkAcceptsHeaders} from "./lib/routeUtils";
+import express from 'express';
+import {initLogger} from './logger';
 
-const express = require('express');
-const logger = require('./logger')(module);
+const logger = initLogger(module);
 
 const apps: IServer = {
     main: express(),
