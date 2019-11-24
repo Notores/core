@@ -89,6 +89,22 @@ routeWithHandle(
     },
 );
 
+routeWithHandle(
+    'notores-updateUserPassword',
+    '/user/:userId/password',
+    [
+        checkEmptyParams,
+        checkParamIsObjectId('userId'),
+        checkInput([
+            {key: 'password', type: String},
+            {key: 'newPassword', type: String},
+            {key: 'repeatNewPassword', type: String},
+        ], 'body'),
+        UserRouter.patchPassword
+    ], {
+        method: 'patch',
+    },
+);
 
 routeWithHandle(
     'notores-updateUser',
@@ -98,7 +114,6 @@ routeWithHandle(
         checkParamIsObjectId('userId'),
         checkInput([
             {key: 'password', type: String},
-            {key: 'repeatPassword', type: String},
         ], 'body'),
         UserRouter.patch
     ], {

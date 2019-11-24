@@ -104,6 +104,36 @@ class UserRouter {
         next();
     }
 
+    static async patchPassword(req, res, next) {
+        const body = req.body;
+
+        const user = await UserRouter.getModel().findById(req.user.id);
+
+        const verifyPassword = await user.verifyPassword(body.password);
+
+        if (verifyPassword.error) {
+            res.locals.setBody(verifyPassword);
+            return next();
+        }
+
+        if (body.newPassword !== body.repeatNewPassword) {
+            res.locals.setBody({error: 'New password and validation do not match'});
+            return next();
+        }
+
+        try {
+            await user.updatePassword(body.password, body.newPassword);
+            const sessionUser = await UserRouter.getModel().getUserById(req.user.id);
+            req.user = sessionUser;
+            res.locals.setBody({user: sessionUser});
+        } catch (e) {
+            logger.error(`Error in updating user "${e.message}"`);
+            res.locals.setBody({error: 'Something went wrong updating info'})
+        } finally {
+            next();
+        }
+    }
+
     static async patch(req, res, next) {
         const body = req.body;
 
@@ -117,7 +147,6 @@ class UserRouter {
         }
 
         delete body.password;
-        delete body.repeatPassword;
 
         Object.assign(user, body);
 
@@ -133,7 +162,6 @@ class UserRouter {
             next();
         }
     }
-
 
     static async delete(req, res, next) {
 
