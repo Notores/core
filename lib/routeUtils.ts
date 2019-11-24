@@ -54,8 +54,49 @@ export function updateHandleActive(handle: string, active: boolean): void {
  * @example addRouteToRegistry('notores-login', '/login', 'post);
  */
 export function addRouteToRegistry(handle: string, path: string, method: string) {
+    const exists = registry.find(reg => reg.handle === handle);
+    if (exists) {
+        logger.error(`Handle ${handle} is already in use by route ${exists.method}:${exists.path}`);
+        return false;
+    }
     registry.push({handle, path, method, active: true});
+    return true;
 }
+
+
+const routeActiveGuard = (handle: string): MiddlewareFunction => (req: Request, res: Response, next: NextFunction) => {
+    const registry: IRouteRegistryObject[] = getRegistry();
+    const record = registry.find(rec => rec.handle === handle);
+    if (record && !record.active) {
+        return next('route');
+    }
+    next();
+};
+
+const roleGuard = (roles: string[]): AuthenticatedMiddlewareFunction => (req: Notores.IAuthenticatedRequest, res: Response, next: NextFunction) => {
+    if (req.user!.roles.length === 0) {
+        return next('route');
+    }
+
+    for (let i = 0; i < roles.length; i++) {
+        const role = roles[i];
+        for (let i = 0; i < req!.user!.roles.length; i++) {
+            if (req.user.roles[i].toLowerCase() === role.toLowerCase()) {
+                return next();
+            }
+        }
+    }
+
+    next('route');
+};
+
+const unAuthenticatedGuard = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.isAuthenticated()) {
+        res.locals.error({status: 403, message: 'Not Authenticated'});
+        return next('route'); // TODO: Check what we want to do here (API server vs WebsiteServer (Themes)
+    }
+    next();
+};
 
 /**
  * Create routes for your app with a handle
@@ -83,9 +124,14 @@ export function routeWithHandle(handle: string, path: string, middlewares: Array
         }
         middlewares.unshift(checkAcceptsHeaders(accepts));
     }
-    if (roles) {
-        if (!Array.isArray(roles)) {
-            roles = [roles];
+
+    if (authenticated) {
+        middlewares.unshift(unAuthenticatedGuard);
+        if (roles) {
+            if (!Array.isArray(roles)) {
+                roles = [roles];
+            }
+            middlewares.unshift(roleGuard(roles));
         }
     }
 

@@ -13,6 +13,7 @@ import {
     updateHandleActive
 } from "./lib/routeUtils";
 import {isIErrorObject, isIModuleListing} from "./lib/helperFunctions";
+import Module from './Module';
 
 const Locals = require('./lib/Locals').Locals;
 const MongoSchema = require('./lib/MongoSchema');
@@ -35,6 +36,7 @@ export {
     Locals,
     MongoSchema,
     NotoresModule,
+    Module,
     responseHandler,
     htmlResponder,
     jsonResponder,
@@ -71,6 +73,7 @@ module.exports = {
     Locals,
     MongoSchema,
     NotoresModule,
+    Module,
     responseHandler,
     htmlResponder,
     jsonResponder,
