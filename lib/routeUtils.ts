@@ -21,7 +21,7 @@ const registry: IRouteRegistryObject[] = [];
  * @example app.get('/login', handleActive('custom-login'), loginMiddleware);
  */
 export function handleActive(handle: string): MiddlewareFunction {
-    return (req, res, next) => {
+    return function handleActive (req, res, next) {
         const handleInfo = registry.find(entry => entry.handle === handle);
 
         if (!handleInfo || handleInfo.active === false)
@@ -64,7 +64,7 @@ export function addRouteToRegistry(handle: string, path: string, method: string)
 }
 
 
-const routeActiveGuard = (handle: string): MiddlewareFunction => (req: Request, res: Response, next: NextFunction) => {
+const routeActiveGuard = (handle: string): MiddlewareFunction => function routeActiveGuard (req: Request, res: Response, next: NextFunction) {
     const registry: IRouteRegistryObject[] = getRegistry();
     const record = registry.find(rec => rec.handle === handle);
     if (record && !record.active) {
@@ -73,7 +73,7 @@ const routeActiveGuard = (handle: string): MiddlewareFunction => (req: Request, 
     next();
 };
 
-const roleGuard = (roles: string[]): AuthenticatedMiddlewareFunction => (req: Notores.IAuthenticatedRequest, res: Response, next: NextFunction) => {
+const roleGuard = (roles: string[]): AuthenticatedMiddlewareFunction => function roleGuard (req: Notores.IAuthenticatedRequest, res: Response, next: NextFunction) {
     if (req.user!.roles.length === 0) {
         return next('route');
     }
@@ -90,7 +90,7 @@ const roleGuard = (roles: string[]): AuthenticatedMiddlewareFunction => (req: No
     next('route');
 };
 
-const unAuthenticatedGuard = (req: Request, res: Response, next: NextFunction) => {
+function unAuthenticatedGuard(req: Request, res: Response, next: NextFunction) {
     if (!req.isAuthenticated()) {
         res.locals.error({status: 403, message: 'Not Authenticated'});
         return next('route'); // TODO: Check what we want to do here (API server vs WebsiteServer (Themes)
@@ -131,7 +131,8 @@ export function routeWithHandle(handle: string, path: string, middlewares: Array
             if (!Array.isArray(roles)) {
                 roles = [roles];
             }
-            middlewares.unshift(roleGuard(roles));
+            if (roles.length > 0)
+                middlewares.unshift(roleGuard(roles));
         }
     }
 
@@ -198,7 +199,7 @@ export function middlewareForRouter(middlewares: Array<MiddlewareFunction | Auth
  * @return {Function}
  */
 export const checkAcceptsHeaders = (headers: string | string[], setResponseType: Boolean = true): MiddlewareFunction => {
-    return (req, res, next) => {
+    return function checkAcceptsHeader (req, res, next) {
         const acceptedHeaders: string[] = Array.isArray(headers) ? [...headers] : [headers];
 
         const accepted = req.accepts(acceptedHeaders);
@@ -247,7 +248,7 @@ export function checkEmptyParams(req: Request, res: Response, next: NextFunction
 }
 
 export function checkParamIsObjectId(paramName: string): MiddlewareFunction {
-    return (req, res, next) => {
+    return function checkParamIsObjectId (req, res, next) {
         try {
             mongoose.Types.ObjectId(req.params[paramName]);
             next();
