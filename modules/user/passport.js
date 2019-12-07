@@ -15,7 +15,10 @@ passport.serializeUser(function (user, done) {
 passport.deserializeUser(function (id, done) {
     UserModel.getUserById(id)
         .then(user => {
-            done(null, user);
+            if(user)
+                done(null, user);
+            else
+                done({failed: 'user does not exist'})
         })
         .catch(err => {
             done(err, null);
@@ -38,7 +41,10 @@ const jwtOpts = {
 passport.use(new LocalStrategy(localOpts, (email, password, done) => {
     UserModel.authenticate(email, password)
         .then(user => {
-            return done(null, user);
+            if(user)
+                done(null, user);
+            else
+                done({failed: 'user does not exist'})
         })
         .catch(error => {
             logger.error(`LocalStrategy error: ${error}`);
@@ -49,7 +55,10 @@ passport.use(new LocalStrategy(localOpts, (email, password, done) => {
 passport.use(new JwtStrategy(jwtOpts, function (jwt_payload, done) {
     UserModel.getUserById(jwt_payload.id)
         .then(user => {
-            return done(null, user);
+            if(user)
+                done(null, user);
+            else
+                done({failed: 'user does not exist'})
         })
         .catch(error => {
             logger.error(`JwtStrategy error: ${error}`);
