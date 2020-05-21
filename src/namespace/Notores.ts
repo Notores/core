@@ -1,23 +1,10 @@
 import {Request, Response, NextFunction} from 'express';
-import {MiddlewareForRouterLevelEnum} from "../enums/MiddlewareForRouterLevelEnum";
-// import {User as NUser} from "../modules/user/User";
+import {ISessionObject} from "..";
 
 declare global {
     namespace Notores {
         interface user {
-            email: string;
-
-            password: string;
-
-            firstname: string;
-
-            middlename?: string;
-
-            lastname: string;
-
-            roles: string[];
-
-            readonly name: string;
+            roles: string[] | {role: string}[];
 
             verifyPassword(input: string): Promise<{ message: string } | Error>;
 
@@ -49,22 +36,16 @@ declare global {
             [key: string]: any;
         }
 
-        interface ISessionObject {
-            id: string | number;
-            jwt: string;
-        }
     }
     namespace Express {
 
-        // interface User extends Notores.User {
-        //
-        // }
+        interface User extends Notores.user {
+
+        }
 
         interface Request {
-            // @ts-ignore
-            user?: Notores.user | Express.User | undefined;
             notores: Notores.IConfig;
-            session: Notores.ISessionObject;
+            session: ISessionObject;
             db?: null | {
                 connection: any;
                 type: string;
@@ -85,48 +66,5 @@ export interface IThemeConfig {
     };
 }
 
-export interface ICheckInputObject {
-    key: string;
-    type: Object;
-}
-
-export interface ISessionObject {
-    id: string | number;
-    jwt: string;
-}
-
-export declare const enum ParamsOrBodyEnum {
-    params = "params",
-    body = "body"
-}
-
-export interface IRouteWithHandleSettings {
-    method?: string;
-    accepts?: string[];
-    authenticated?: Boolean;
-    admin?: Boolean;
-    roles?: string[];
-}
-
-export interface IMiddlewareForRouterSettings {
-    when?: string;
-    accepts?: string[];
-    path?: string;
-    level?: MiddlewareForRouterLevelEnum;
-}
-
-export interface IRouteRegistryObject {
-    handle: string;
-    path: string;
-    method: string;
-    active: Boolean;
-}
-
-export interface StringKeyObject {
-    [key: string]: any
-}
-
-
-export declare type IsAuthenticatedFunction = () => Boolean;
 export declare type MiddlewareFunction = (req: Request, res: Response, next: NextFunction) => Promise<any> | void;
 

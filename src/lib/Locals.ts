@@ -1,4 +1,4 @@
-import './../namespace/Notores'
+import '../namespace/Notores'
 import {RequestHandler, Request, Response, NextFunction} from "express";
 import loggerFactory from "./logger";
 import {MiddlewareFunction} from "../namespace/Notores";

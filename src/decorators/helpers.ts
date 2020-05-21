@@ -155,7 +155,9 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                             for (let i = 0; i < ROLES.length; i++) {
                                 const role = ROLES[i];
                                 for (let i = 0; i < req!.user!.roles!.length; i++) {
-                                    if (req.user!.roles![i].toLowerCase() === role.toLowerCase()) {
+                                    const r = req.user!.roles[i];
+                                    const userRole = typeof r === 'string' ? r : r.role;
+                                    if (userRole[i].toLowerCase() === role.toLowerCase()) {
                                         return next();
                                     }
                                 }

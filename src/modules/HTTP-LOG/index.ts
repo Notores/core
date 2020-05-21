@@ -1,4 +1,4 @@
-import {Module} from "../..";
+import {Module} from "../../index";
 import { Use } from "../../decorators/Middleware";
 import {Request, Response} from "express";
 import loggerFactory from "../../lib/logger";
