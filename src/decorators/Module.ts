@@ -1,0 +1,72 @@
+import ModuleDecoratorOptions from "../interfaces/ModuleDecoratorOptions";
+import {DATA_KEY, MODULE_PATH, ROOT_ROUTE} from "../constants";
+import 'reflect-metadata'
+import {NotoresApplication} from "../Notores";
+import {repositoryMetadataKey} from "../symbols";
+
+export function Module(settings?: ModuleDecoratorOptions | string): ClassDecorator {
+    return function (target: any) {
+        const filePath = getFilePath();
+        console.log('filePath', filePath);
+        Reflect.defineMetadata(repositoryMetadataKey, [], target);
+
+        if (typeof settings === 'string') {
+            settings = {
+                prefix: settings,
+            }
+        }
+
+        let dataKey: string = target.name.indexOf('Module') > -1 ? target.name.replace('Module', '') : target.name;
+
+        if (!settings || typeof settings === 'string') {
+            settings = {
+                prefix: settings || '/',
+                dataKey,
+                table: []
+            }
+        } else {
+            settings = {
+                prefix: '/',
+                dataKey,
+                table: [],
+                ...settings,
+            };
+
+            if (settings.entity) {
+                NotoresApplication.entities.push(settings.entity);
+                target.prototype.entity = settings.entity;
+            }
+            if(settings.entities) {
+                NotoresApplication.entities.push(...settings.entities);
+            }
+            if(settings.repository) {
+                NotoresApplication.repositories.push(settings.repository);
+                target.prototype.repoClazz = settings.repository;
+                target.prototype.repository = new settings.repository();
+            }
+        }
+
+        target[ROOT_ROUTE] = settings?.prefix?.startsWith('/') ? settings.prefix : `/${settings.prefix}`;
+        target[DATA_KEY] = settings.dataKey;
+        target[MODULE_PATH] = filePath;
+    }
+}
+
+function getFilePath() {
+    const err = new Error();
+    const stack = err.stack;
+    const stackArr = stack!.split('\n');
+    stackArr.shift();
+    let filePathStringStack = '';
+    for (let str of stackArr) {
+        if (str.includes('__decorate')) {
+            filePathStringStack = str;
+        }
+    }
+    const filePathStr = /\(.*\)/im[Symbol.match](filePathStringStack)![0];
+    // @ts-ignore
+    const fileStrArr = new RegExp(/(\/[a-z-.]+)/gim)[Symbol.match](filePathStr);
+    fileStrArr!.pop();
+
+    return fileStrArr!.join('');
+}
