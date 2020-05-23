@@ -12,16 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const index_1 = require("../../index");
-const Middleware_1 = require("../../decorators/Middleware");
+const __1 = require("../..");
+const __2 = require("../..");
 const moment_1 = __importDefault(require("moment"));
 const winston_1 = require("winston");
-const { combine, timestamp, label, printf } = winston_1.format;
-//
-// const getLabel = function (callingModule: Module) {
-//     const parts = callingModule.filename.split(path.sep);
-//     return path.join(parts[parts.length - 2], parts.pop() || '');
-// };
+const { combine, timestamp, printf } = winston_1.format;
 const myFormat = printf((info) => {
     return `${moment_1.default(info.timestamp).format('YYYY-MM-DD HH:mm:sss')} ${info.message}`;
 });
@@ -45,19 +40,21 @@ let RequestLogger = /** @class */ (() => {
                 const finishTime = new Date();
                 // @ts-ignore
                 const diffTime = Math.abs(finishTime - startTime);
-                const success = res.locals.error.status === 0;
-                logger.info(`HTTP response:  ${req.method}:${req.originalUrl} (${diffTime} ms)`);
+                const logResponse = res.locals.hasError ? `Error ${res.locals.error.status}` : 'success';
+                logger.info(`HTTP response (${logResponse}):  ${req.method}:${req.originalUrl} (${diffTime} ms)`);
+                if (!res.locals.hasError)
+                    logger.error(`HTTP error: ${res.locals.error.message}`);
             });
         }
     };
     __decorate([
-        Middleware_1.Use(),
+        __2.Use(),
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [Object, Object]),
         __metadata("design:returntype", void 0)
     ], RequestLogger.prototype, "logger", null);
     RequestLogger = __decorate([
-        index_1.Module()
+        __1.Module()
     ], RequestLogger);
     return RequestLogger;
 })();

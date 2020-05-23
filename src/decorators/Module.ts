@@ -1,4 +1,4 @@
-import ModuleDecoratorOptions from "../interfaces/ModuleDecoratorOptions";
+import {ModuleDecoratorOptions} from "..";
 import {DATA_KEY, MODULE_PATH, ROOT_ROUTE} from "../constants";
 import 'reflect-metadata'
 import {NotoresApplication} from "../Notores";

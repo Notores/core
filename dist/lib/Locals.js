@@ -1,12 +1,7 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Locals = void 0;
 require("../namespace/Notores");
-const logger_1 = __importDefault(require("./logger"));
-const logger = logger_1.default(module);
 let Locals = /** @class */ (() => {
     class Locals {
         constructor(req) {
@@ -135,6 +130,9 @@ let Locals = /** @class */ (() => {
         }
         get error() {
             return this._error;
+        }
+        get hasError() {
+            return this._error.status >= 400 && this._error.status < 600;
         }
         get NODE_ENV() {
             return this._NODE_ENV;

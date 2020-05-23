@@ -1,8 +1,6 @@
 import {
     ModuleMethodDecoratorOptions,
-    ModuleMiddlewareDecoratorOptionsPost,
-    ModuleMiddlewareDecoratorOptionsPre
-} from "../interfaces/ModuleMethodDecoratorOptions";
+} from "..";
 import {
     AUTH,
     HTTP_METHOD,
@@ -13,7 +11,7 @@ import {
     PRIVATE,
     PAGE_GEN, AUTH_REDIRECT
 } from "../constants";
-import loggerFactory from "../lib/logger";
+import {loggerFactory} from "..";
 
 const logger = loggerFactory(module);
 
@@ -35,14 +33,6 @@ interface IMethodOptions {
     authenticated: boolean;
     private: boolean;
     pages: string[],
-}
-
-interface IMethodInputOptions {
-    path: string;
-    pre: Array<Function | string> | Function | string;
-    post: Array<Function | string> | Function | string;
-    roles: Array<string> | string;
-    authenticated: boolean;
 }
 
 type IMethodDecoratorOptionsAndFunction = IMethodDecoratorOptions & Function

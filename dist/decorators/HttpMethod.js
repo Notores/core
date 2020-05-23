@@ -1,12 +1,9 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DeleteId = exports.PatchId = exports.PutId = exports.GetId = exports.Delete = exports.Patch = exports.Put = exports.Post = exports.Get = exports.Page = exports.Middleware = exports.Private = exports.Admin = exports.Authenticated = exports.Authorized = exports.Roles = exports.Restricted = void 0;
 const constants_1 = require("../constants");
-const logger_1 = __importDefault(require("../lib/logger"));
-const logger = logger_1.default(module);
+const __1 = require("..");
+const logger = __1.loggerFactory(module);
 function defaultMethodSettings(obj) {
     return {
         path: typeof obj === 'string' ? obj : (obj === null || obj === void 0 ? void 0 : obj.PATH_ROUTE) || '',

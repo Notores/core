@@ -1,4 +1,4 @@
-export default interface ModuleDecoratorOptions {
+export interface ModuleDecoratorOptions {
     prefix?: string;
     dataKey?:string;
     table?: string[];

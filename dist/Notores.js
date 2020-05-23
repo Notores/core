@@ -1,19 +1,16 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotoresApplication = void 0;
 const helpers_1 = require("./decorators/helpers");
 const server_1 = require("./server");
 require("./namespace/Notores");
-const logger_1 = __importDefault(require("./lib/logger"));
-const logger = logger_1.default(module);
+const logger_1 = require("./lib/logger");
+const logger = logger_1.loggerFactory(module);
 let NotoresApplication = /** @class */ (() => {
     class NotoresApplication {
         constructor(modules) {
             this.modules = [
-                require('./modules/HTTP-LOG').default,
+                require('./modules/HTTP-LOG'),
             ];
             this.controllers = [];
             this.apps = server_1.createServer();
@@ -36,7 +33,7 @@ let NotoresApplication = /** @class */ (() => {
             this.bindModules();
         }
         bindModules() {
-            this.controllers = helpers_1.bindControllers(this.apps, this.modules);
+            this.controllers = helpers_1.bindControllers(this.apps, this.modules.map(m => typeof m === 'function' ? m : m.default));
             console.table(helpers_1.paths);
         }
         addConnectionToRequest() {

@@ -1,11 +1,6 @@
 import '../namespace/Notores'
-import {RequestHandler, Request, Response, NextFunction} from "express";
-import loggerFactory from "./logger";
-import {MiddlewareFunction} from "../namespace/Notores";
-import {join} from 'path';
-
-const logger = loggerFactory(module);
-
+import {Request, Response, NextFunction} from "express";
+import {MiddlewareFunction} from "..";
 interface KeyValueObject {
     [key: string]: any;
 }
@@ -176,6 +171,10 @@ export class Locals implements KeyValueObject {
 
     get error(): { status: number, message: string } {
         return this._error;
+    }
+
+    get hasError(): boolean {
+        return this._error.status >= 400 && this._error.status < 600;
     }
 
     get NODE_ENV() {

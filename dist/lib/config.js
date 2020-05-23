@@ -1,15 +1,12 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.writeConfig = exports.getPackage = exports.getConfig = exports.getJsonFile = exports.getDefaultConfig = exports.getConfigDefaults = exports.addConfigDefault = void 0;
 require("../namespace/Notores");
 const fs_1 = require("fs");
-const logger_1 = __importDefault(require("./logger"));
+const logger_1 = require("./logger");
 const path_1 = require("path");
 const assign = require('assign-deep');
-const logger = logger_1.default(module);
+const logger = logger_1.loggerFactory(module);
 const rootDir = process.cwd();
 const notoresConfigFileName = 'notores.json';
 const defaultCoreConfig = {

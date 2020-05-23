@@ -14,7 +14,7 @@ const myFormat = printf((info: any) => {
     return `${moment(info.timestamp).format('YYYY-MM-DD HH:mm:sss')} [${info.label}] ${info.level}: ${info.message}`;
 });
 
-export default function loggerFactory(callingModule: Module): Logger {
+export function loggerFactory(callingModule: Module): Logger {
     return createLogger({
         format: combine(
             label({label: getLabel(callingModule)}),

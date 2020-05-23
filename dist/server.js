@@ -6,9 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getServers = exports.createServer = void 0;
 const express_1 = __importDefault(require("express"));
 require("./namespace/Notores");
-const logger_1 = __importDefault(require("./lib/logger"));
+const logger_1 = require("./lib/logger");
 const Responder_1 = __importDefault(require("./lib/Responder"));
-const logger = logger_1.default(module);
+const logger = logger_1.loggerFactory(module);
 const apps = {
     main: express_1.default(),
     system: express_1.default(),
@@ -120,7 +120,7 @@ function createServer() {
                 }
             }
         }
-        if (res.locals.error.status > 400 && res.locals.error.status < 600) {
+        if (res.locals.hasError) {
             return Responder_1.default.jsonResponder(req, res, next);
         }
         return next();

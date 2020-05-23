@@ -1,4 +1,4 @@
-import { ModuleMethodDecoratorOptions } from "../interfaces/ModuleMethodDecoratorOptions";
+import { ModuleMethodDecoratorOptions } from "..";
 export declare function Restricted(roles?: string[] | string): (target: any, propertyKey: string) => void;
 export declare function Roles(roles?: string[]): (target: any, propertyKey: string) => void;
 export declare function Authorized(roles?: string[]): (target: any, propertyKey: string) => void;

@@ -4,7 +4,9 @@ export declare class NotoresApplication {
     static entities: any[];
     static repositories: any[];
     static _app: NotoresApplication;
-    modules: Function[];
+    modules: Array<{
+        default: Function;
+    } | Function>;
     controllers: any[];
     apps: IServer;
     connection: any;

@@ -2,7 +2,7 @@ import {bindControllers, paths} from "./decorators/helpers";
 import {createServer} from "./server";
 import {IServer} from "./interfaces/IServer";
 import './namespace/Notores';
-import loggerFactory from "./lib/logger";
+import {loggerFactory} from "./lib/logger";
 import {Request, Response, NextFunction} from "express";
 
 const logger = loggerFactory(module);
@@ -14,8 +14,8 @@ export class NotoresApplication {
 
     static _app: NotoresApplication;
 
-    modules: Function[] = [
-        require('./modules/HTTP-LOG').default,
+    modules: Array<{ default: Function } | Function> = [
+        require('./modules/HTTP-LOG'),
     ];
     controllers: any[] = [];
     apps: IServer = createServer();
@@ -45,7 +45,7 @@ export class NotoresApplication {
     }
 
     bindModules() {
-        this.controllers = bindControllers(this.apps, this.modules);
+        this.controllers = bindControllers(this.apps, this.modules.map(m => typeof m === 'function' ? m : m.default));
         console.table(paths);
     }
 

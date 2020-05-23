@@ -1,17 +1,10 @@
-import {Module} from "../../index";
-import { Use } from "../../decorators/Middleware";
+import {Module} from "../..";
+import {Use} from "../..";
 import {Request, Response} from "express";
-import loggerFactory from "../../lib/logger";
 import moment from 'moment';
 import {createLogger, format, transports} from "winston";
-import path from "path";
-const {combine, timestamp, label, printf} = format;
 
-//
-// const getLabel = function (callingModule: Module) {
-//     const parts = callingModule.filename.split(path.sep);
-//     return path.join(parts[parts.length - 2], parts.pop() || '');
-// };
+const {combine, timestamp, printf} = format;
 
 const myFormat = printf((info: any) => {
     return `${moment(info.timestamp).format('YYYY-MM-DD HH:mm:sss')} ${info.message}`;
@@ -46,9 +39,11 @@ export default class RequestLogger {
             // @ts-ignore
             const diffTime = Math.abs(finishTime - startTime);
 
-            const success = res.locals.error.status === 0;
+            const logResponse = res.locals.hasError ? `Error ${res.locals.error.status}` : 'success';
 
-            logger.info(`HTTP response:  ${req.method}:${req.originalUrl} (${diffTime} ms)`);
+            logger.info(`HTTP response (${logResponse}):  ${req.method}:${req.originalUrl} (${diffTime} ms)`);
+            if (!res.locals.hasError)
+                logger.error(`HTTP error: ${res.locals.error.message}`);
         })
 
     }

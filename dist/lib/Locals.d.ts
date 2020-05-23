@@ -62,6 +62,7 @@ export declare class Locals implements KeyValueObject {
         status: number;
         message: string;
     };
+    get hasError(): boolean;
     get NODE_ENV(): string;
     get payload(): {};
     get url(): string;

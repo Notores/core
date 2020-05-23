@@ -1,7 +1,7 @@
 import express, {Request, Response, NextFunction} from 'express';
 import {IServer} from "./interfaces/IServer";
 import './namespace/Notores';
-import loggerFactory from "./lib/logger";
+import {loggerFactory} from "./lib/logger";
 import Responder from "./lib/Responder";
 
 const logger = loggerFactory(module);
@@ -119,7 +119,6 @@ export function createServer(): IServer {
     apps.main.use('/n-admin', apps.private.main);
     apps.private.main.use((req: Request, res: Response, next: NextFunction) => {
 
-
         if (!req.isAuthenticated()) {
             if (res.locals.type === 'html') {
                 console.log('redirecting to login...');
@@ -137,7 +136,7 @@ export function createServer(): IServer {
             }
         }
 
-        if (res.locals.error.status > 400 && res.locals.error.status < 600) {
+        if (res.locals.hasError) {
             return Responder.jsonResponder(req, res, next);
         }
 

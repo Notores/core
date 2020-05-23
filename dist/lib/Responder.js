@@ -34,7 +34,7 @@ class Responder {
             }
         };
         this.jsonResponder = (req, res, next) => {
-            if (res.locals.error.status > 400 && res.locals.error.status < 600) {
+            if (res.locals.hasError) {
                 const error = res.locals.error;
                 res.status(error.status);
                 res.json({ error: error.message instanceof Error ? error.message.message : error.message });
@@ -74,7 +74,7 @@ class Responder {
         };
         this.getThemePaths = (req, res) => {
             const pages = [];
-            if (res.locals.error.status > 400 && res.locals.error.status < 600) {
+            if (res.locals.hasError) {
                 pages.push(...this.genPaths(req, `/${res.locals.error.status}`));
                 pages.push(...this.genPaths(req, `/500`));
             }
