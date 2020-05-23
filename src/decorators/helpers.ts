@@ -1,6 +1,5 @@
-import * as express from "express";
-import {DATA_KEY, HTTP_METHOD, MIDDLEWARE, MODULE_PATH, PATH_ROUTE, ROOT_ROUTE} from "../constants";
-import {Application, Request} from "express";
+import {DATA_KEY, HTTP_METHOD, MIDDLEWARE, MODULE_PATH, ROOT_ROUTE} from "../constants";
+import {Request} from "express";
 import {Response} from "express";
 import {NextFunction} from "express";
 import {IServer} from "../interfaces/IServer";

@@ -1,6 +1,6 @@
 import '../namespace/Notores'
 import {Request, Response, NextFunction} from "express";
-import {MiddlewareFunction} from "..";
+import { MiddlewareFunction } from '../namespace/Notores';
 interface KeyValueObject {
     [key: string]: any;
 }

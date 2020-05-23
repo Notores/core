@@ -30,4 +30,3 @@ export function loggerFactory(callingModule: Module): Logger {
         ]
     });
 }
-module.exports = loggerFactory;

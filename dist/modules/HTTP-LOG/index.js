@@ -12,10 +12,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const __1 = require("../..");
-const __2 = require("../..");
 const moment_1 = __importDefault(require("moment"));
 const winston_1 = require("winston");
+const Module_1 = require("../../decorators/Module");
+const Middleware_1 = require("../../decorators/Middleware");
 const { combine, timestamp, printf } = winston_1.format;
 const myFormat = printf((info) => {
     return `${moment_1.default(info.timestamp).format('YYYY-MM-DD HH:mm:sss')} ${info.message}`;
@@ -48,13 +48,13 @@ let RequestLogger = /** @class */ (() => {
         }
     };
     __decorate([
-        __2.Use(),
+        Middleware_1.Use(),
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [Object, Object]),
         __metadata("design:returntype", void 0)
     ], RequestLogger.prototype, "logger", null);
     RequestLogger = __decorate([
-        __1.Module()
+        Module_1.Module()
     ], RequestLogger);
     return RequestLogger;
 })();

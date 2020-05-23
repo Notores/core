@@ -1,8 +1,8 @@
-import {ModuleDecoratorOptions} from "..";
-import {DATA_KEY, MODULE_PATH, ROOT_ROUTE} from "../constants";
 import 'reflect-metadata'
+import {DATA_KEY, MODULE_PATH, ROOT_ROUTE} from "../constants";
 import {NotoresApplication} from "../Notores";
 import {repositoryMetadataKey} from "../symbols";
+import { ModuleDecoratorOptions } from '../interfaces/ModuleDecoratorOptions';
 
 export function Module(settings?: ModuleDecoratorOptions | string): ClassDecorator {
     return function (target: any) {

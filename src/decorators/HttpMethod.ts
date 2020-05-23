@@ -1,7 +1,4 @@
 import {
-    ModuleMethodDecoratorOptions,
-} from "..";
-import {
     AUTH,
     HTTP_METHOD,
     PATH_ROUTE,
@@ -11,7 +8,8 @@ import {
     PRIVATE,
     PAGE_GEN, AUTH_REDIRECT
 } from "../constants";
-import {loggerFactory} from "..";
+import { loggerFactory } from "../lib/logger";
+import { ModuleMethodDecoratorOptions } from "../interfaces/ModuleMethodDecoratorOptions";
 
 const logger = loggerFactory(module);
 

@@ -28,4 +28,3 @@ function loggerFactory(callingModule) {
     });
 }
 exports.loggerFactory = loggerFactory;
-module.exports = loggerFactory;

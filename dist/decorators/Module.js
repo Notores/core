@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Module = void 0;
-const constants_1 = require("../constants");
 require("reflect-metadata");
+const constants_1 = require("../constants");
 const Notores_1 = require("../Notores");
 const symbols_1 = require("../symbols");
 function Module(settings) {

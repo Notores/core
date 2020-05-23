@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ISessionObject } from "..";
+import { ISessionObject } from '../interfaces/ISessionObject';
 declare global {
     namespace Notores {
         interface user {

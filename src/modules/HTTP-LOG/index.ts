@@ -1,8 +1,8 @@
-import {Module} from "../..";
-import {Use} from "../..";
 import {Request, Response} from "express";
 import moment from 'moment';
 import {createLogger, format, transports} from "winston";
+import { Module } from "../../decorators/Module";
+import { Use } from "../../decorators/Middleware";
 
 const {combine, timestamp, printf} = format;
 
