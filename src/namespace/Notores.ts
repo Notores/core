@@ -4,7 +4,7 @@ import { ISessionObject } from '../interfaces/ISessionObject';
 declare global {
     namespace Notores {
         interface user {
-            roles: string[] | {role: string}[];
+            roles: Array<string | {role: string, [key: string]: any} | any>;
 
             verifyPassword(input: string): Promise<{ message: string } | Error>;
 
