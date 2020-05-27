@@ -1,4 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.repositoryMetadataKey = void 0;
-exports.repositoryMetadataKey = Symbol("repository");
+exports.connectionManagerMetadataKey = exports.connectionMetadataKey = exports.repositoryMetadataKey = void 0;
+exports.repositoryMetadataKey = Symbol("dbRepository");
+exports.connectionMetadataKey = Symbol("dbConnection");
+exports.connectionManagerMetadataKey = Symbol("dbConnectionManager");

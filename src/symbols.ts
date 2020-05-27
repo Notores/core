@@ -1,1 +1,3 @@
-export const repositoryMetadataKey = Symbol("repository");
+export const repositoryMetadataKey = Symbol("dbRepository");
+export const connectionMetadataKey = Symbol("dbConnection");
+export const connectionManagerMetadataKey = Symbol("dbConnectionManager");
