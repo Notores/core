@@ -112,8 +112,6 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                     } else {
                         body = {[dataKey]: result};
                     }
-
-                    console.log('setting body', body);
                     res.locals.setBody(body);
                     next();
                 }
@@ -129,9 +127,6 @@ export function bindControllers(server: IServer, controllers: Function[]) {
             if (AUTH) {
                 preMiddlewares.push(
                     (req: Request, res: Response, next: NextFunction) => {
-                        console.log('isAuthenticated?', req.isAuthenticated());
-                        console.log('redirect?', AUTH_REDIRECT);
-
                         if (!req.isAuthenticated()) {
                             res.locals.error = {status: 403, message: 'Not Authenticated'};
 
@@ -169,17 +164,14 @@ export function bindControllers(server: IServer, controllers: Function[]) {
             }
 
             if (PAGE_GEN) {
-                console.log(pathRouteMethod, PAGE_GEN)
                 postMiddlewares.push(
                     (req: Request, res: Response, next: NextFunction) => {
-                        console.log('PAGE_GEN', PAGE_GEN);
                         res.locals.addPageLocations([
                             join(modulePath, 'pages')
                         ]);
                         res.locals.addPages(
                             PAGE_GEN
                         );
-                        console.log(res.locals.pages);
                         return next();
                     }
                 );

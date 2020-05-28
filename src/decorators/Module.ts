@@ -7,7 +7,6 @@ import { ModuleDecoratorOptions } from '../interfaces/ModuleDecoratorOptions';
 export function Module(settings?: ModuleDecoratorOptions | string): ClassDecorator {
     return function (target: any) {
         const filePath = getFilePath();
-        console.log('filePath', filePath);
         Reflect.defineMetadata(repositoryMetadataKey, [], target);
 
         if (typeof settings === 'string') {

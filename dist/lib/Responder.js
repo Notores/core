@@ -80,7 +80,6 @@ class Responder {
             }
             else {
                 res.locals.pages.forEach((page) => {
-                    console.log(this.genPaths(req, page));
                     pages.push(...this.genPaths(req, page));
                 });
                 pages.push(...this.genPaths(req, req.path));

@@ -103,7 +103,7 @@ function createServer() {
     apps.private.main.use((req, res, next) => {
         if (!req.isAuthenticated()) {
             if (res.locals.type === 'html') {
-                console.log('redirecting to login...');
+                // console.log('redirecting to login...');
                 return res.redirect('/login');
             }
             else {

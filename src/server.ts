@@ -121,7 +121,7 @@ export function createServer(): IServer {
 
         if (!req.isAuthenticated()) {
             if (res.locals.type === 'html') {
-                console.log('redirecting to login...');
+                // console.log('redirecting to login...');
                 return res.redirect('/login');
             } else {
                 res.locals.error = {status: 401, message: 'Unauthenticated'};

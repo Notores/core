@@ -71,7 +71,6 @@ class Responder {
             pages.push(...this.genPaths(req, `/500`));
         } else {
             res.locals.pages.forEach((page: string) => {
-                console.log(this.genPaths(req, page));
                 pages.push(...this.genPaths(req, page))
             });
             pages.push(

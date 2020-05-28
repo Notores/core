@@ -9,7 +9,6 @@ function Module(settings) {
     return function (target) {
         var _a;
         const filePath = getFilePath();
-        console.log('filePath', filePath);
         Reflect.defineMetadata(symbols_1.repositoryMetadataKey, [], target);
         if (typeof settings === 'string') {
             settings = {
