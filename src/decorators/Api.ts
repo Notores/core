@@ -38,3 +38,14 @@ export function param(key: string, type?: ParamTypes) {
     }
 }
 
+export function request(target: any, key: string, index: number) {
+    addApiDecoratorToFunction('request', target, key, index);
+}
+
+export function response(target: any, key: string, index: number) {
+    addApiDecoratorToFunction('response', target, key, index);
+}
+
+export function next(target: any, key: string, index: number) {
+    addApiDecoratorToFunction('next', target, key, index);
+}

@@ -88,6 +88,15 @@ function bindControllers(server, controllers) {
                     existingApiDecorators.forEach((d) => {
                         let obj;
                         switch (d.type) {
+                            case 'request':
+                                obj = req;
+                                break;
+                            case 'response':
+                                obj = res;
+                                break;
+                            case 'next':
+                                obj = next;
+                                break;
                             case 'body':
                                 obj = req.body;
                                 break;
@@ -101,9 +110,6 @@ function bindControllers(server, controllers) {
                                 obj = req.params;
                                 break;
                             case 'param':
-                                console.log(req.params);
-                                console.log(d.data);
-                                console.log(d.data.key);
                                 let val = req.params[d.data.key];
                                 if (d.data.type) {
                                     switch (d.data.type) {

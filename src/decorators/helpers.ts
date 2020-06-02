@@ -106,6 +106,15 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                     existingApiDecorators.forEach((d: {type: string, index: number, data?: any}) => {
                         let obj;
                         switch(d.type) {
+                            case 'request':
+                                obj = req;
+                                break;
+                            case 'response':
+                                obj = res;
+                                break;
+                            case 'next':
+                                obj = next;
+                                break;
                             case 'body':
                                 obj = req.body;
                                 break;
@@ -119,9 +128,6 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                                 obj = req.params;
                                 break;
                             case 'param':
-                                console.log(req.params);
-                                console.log(d.data!);
-                                console.log(d.data!.key);
                                 let val: any = req.params[d.data!.key]
                                 if(d.data!.type) {
                                     switch(d.data!.type) {

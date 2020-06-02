@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.param = exports.params = exports.query = exports.body = exports.user = exports.ParamTypes = void 0;
+exports.next = exports.response = exports.request = exports.param = exports.params = exports.query = exports.body = exports.user = exports.ParamTypes = void 0;
 const symbols_1 = require("../symbols");
 var ParamTypes;
 (function (ParamTypes) {
@@ -38,3 +38,15 @@ function param(key, type) {
     };
 }
 exports.param = param;
+function request(target, key, index) {
+    addApiDecoratorToFunction('request', target, key, index);
+}
+exports.request = request;
+function response(target, key, index) {
+    addApiDecoratorToFunction('response', target, key, index);
+}
+exports.response = response;
+function next(target, key, index) {
+    addApiDecoratorToFunction('next', target, key, index);
+}
+exports.next = next;
