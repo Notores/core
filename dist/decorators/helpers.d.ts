@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { IServer } from "../interfaces/IServer";
 export declare const paths: {
     [key: string]: any;

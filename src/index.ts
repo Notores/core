@@ -1,4 +1,5 @@
 export * from './types/HttpMethods';
+export * from './decorators/Api';
 export * from './decorators/HttpMethod';
 export * from './decorators/Middleware';
 export * from './decorators/Module';

@@ -1,9 +1,12 @@
+import 'reflect-metadata';
 import {DATA_KEY, HTTP_METHOD, MIDDLEWARE, MODULE_PATH, ROOT_ROUTE} from "../constants";
 import {Request} from "express";
 import {Response} from "express";
 import {NextFunction} from "express";
 import {IServer} from "../interfaces/IServer";
 import {join} from "path";
+import {apiParameterMetadataKey} from "../symbols";
+import {ParamTypes} from "./Api";
 
 export const paths: { [key: string]: any } = [];
 
@@ -98,7 +101,54 @@ export function bindControllers(server: IServer, controllers: Function[]) {
         pathRouteMethods.forEach(pathRouteMethod => {
             const wrapperMiddleware = (routingFunction: any) => {
                 return async (req: Request, res: Response, next: NextFunction) => {
-                    const result = await routingFunction(req, res, next);
+                    const params = [];
+                    let existingApiDecorators = Reflect.getOwnMetadata(apiParameterMetadataKey, instance[pathRouteMethod]) ?? [];
+                    existingApiDecorators.forEach((d: {type: string, index: number, data?: any}) => {
+                        let obj;
+                        switch(d.type) {
+                            case 'body':
+                                obj = req.body;
+                                break;
+                            case 'user':
+                                obj = req.user;
+                                break;
+                            case 'query':
+                                obj = req.query;
+                                break;
+                            case 'params':
+                                obj = req.params;
+                                break;
+                            case 'param':
+                                console.log(req.params);
+                                console.log(d.data!);
+                                console.log(d.data!.key);
+                                let val: any = req.params[d.data!.key]
+                                if(d.data!.type) {
+                                    switch(d.data!.type) {
+                                        case ParamTypes.int:
+                                        case ParamTypes.integer:
+                                            val = parseInt(val);
+                                            break;
+                                        case ParamTypes.float:
+                                            val = parseFloat(val);
+                                            break;
+                                        case ParamTypes.bool:
+                                        case ParamTypes.boolean:
+                                            val = !!val;
+                                            break;
+                                    }
+                                }
+
+                                obj = val;
+                        }
+                        params[d.index] = obj;
+                    });
+
+                    params.push(req);
+                    params.push(res);
+                    params.push(next);
+
+                    const result = await routingFunction(...params);
                     let body;
 
                     if (req.method === 'GET' && res.headersSent) {

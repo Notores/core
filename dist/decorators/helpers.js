@@ -1,8 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.bindControllers = exports.paths = void 0;
+require("reflect-metadata");
 const constants_1 = require("../constants");
 const path_1 = require("path");
+const symbols_1 = require("../symbols");
+const Api_1 = require("./Api");
 exports.paths = [];
 /**
  * Attaches the router controllers to the main express application instance.
@@ -79,7 +82,52 @@ function bindControllers(server, controllers) {
         pathRouteMethods.forEach(pathRouteMethod => {
             const wrapperMiddleware = (routingFunction) => {
                 return async (req, res, next) => {
-                    const result = await routingFunction(req, res, next);
+                    var _a;
+                    const params = [];
+                    let existingApiDecorators = (_a = Reflect.getOwnMetadata(symbols_1.apiParameterMetadataKey, instance[pathRouteMethod])) !== null && _a !== void 0 ? _a : [];
+                    existingApiDecorators.forEach((d) => {
+                        let obj;
+                        switch (d.type) {
+                            case 'body':
+                                obj = req.body;
+                                break;
+                            case 'user':
+                                obj = req.user;
+                                break;
+                            case 'query':
+                                obj = req.query;
+                                break;
+                            case 'params':
+                                obj = req.params;
+                                break;
+                            case 'param':
+                                console.log(req.params);
+                                console.log(d.data);
+                                console.log(d.data.key);
+                                let val = req.params[d.data.key];
+                                if (d.data.type) {
+                                    switch (d.data.type) {
+                                        case Api_1.ParamTypes.int:
+                                        case Api_1.ParamTypes.integer:
+                                            val = parseInt(val);
+                                            break;
+                                        case Api_1.ParamTypes.float:
+                                            val = parseFloat(val);
+                                            break;
+                                        case Api_1.ParamTypes.bool:
+                                        case Api_1.ParamTypes.boolean:
+                                            val = !!val;
+                                            break;
+                                    }
+                                }
+                                obj = val;
+                        }
+                        params[d.index] = obj;
+                    });
+                    params.push(req);
+                    params.push(res);
+                    params.push(next);
+                    const result = await routingFunction(...params);
                     let body;
                     if (req.method === 'GET' && res.headersSent) {
                         return;
