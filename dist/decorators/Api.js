@@ -32,9 +32,9 @@ function params(target, key, index) {
     addApiDecoratorToFunction('params', target, key, index);
 }
 exports.params = params;
-function param(key, type) {
+function param(paramKey, type) {
     return (target, key, index) => {
-        addApiDecoratorToFunction('param', target, key, index, { key, type });
+        addApiDecoratorToFunction('param', target, key, index, { key: paramKey, type });
     };
 }
 exports.param = param;

@@ -32,9 +32,9 @@ export function params(target: any, key: string, index: number) {
     addApiDecoratorToFunction('params', target, key, index);
 }
 
-export function param(key: string, type?: ParamTypes) {
+export function param(paramKey: string, type?: ParamTypes) {
     return (target: any, key: string, index: number) => {
-        addApiDecoratorToFunction('param', target, key, index, {key, type});
+        addApiDecoratorToFunction('param', target, key, index, {key: paramKey, type});
     }
 }
 

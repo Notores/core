@@ -6,6 +6,8 @@ const constants_1 = require("../constants");
 const path_1 = require("path");
 const symbols_1 = require("../symbols");
 const Api_1 = require("./Api");
+const logger_1 = require("../lib/logger");
+const logger = logger_1.loggerFactory(module);
 exports.paths = [];
 /**
  * Attaches the router controllers to the main express application instance.
@@ -80,6 +82,7 @@ function bindControllers(server, controllers) {
         // @Path
         const pathRouteMethods = getClassMethodsByDecoratedProperty(Clazz, constants_1.HTTP_METHOD);
         pathRouteMethods.forEach(pathRouteMethod => {
+            const { PATH_ROUTE, HTTP_METHOD, PRE_MIDDLEWARE, POST_MIDDLEWARE, PRIVATE, AUTH, AUTH_REDIRECT, ROLES, PAGE_GEN } = instance[pathRouteMethod];
             const wrapperMiddleware = (routingFunction) => {
                 return async (req, res, next) => {
                     var _a;
@@ -101,6 +104,9 @@ function bindControllers(server, controllers) {
                                 obj = req.body;
                                 break;
                             case 'user':
+                                if (AUTH) {
+                                    logger.error(`Warning: Using @user where a route doesn't have the Authenticated decorator! ${Clazz}:${pathRouteMethod}`);
+                                }
                                 obj = req.user;
                                 break;
                             case 'query':
@@ -151,7 +157,7 @@ function bindControllers(server, controllers) {
                     next();
                 };
             };
-            const { PATH_ROUTE, HTTP_METHOD, PRE_MIDDLEWARE, POST_MIDDLEWARE, PRIVATE, AUTH, AUTH_REDIRECT, ROLES, PAGE_GEN } = instance[pathRouteMethod];
+            // const {PATH_ROUTE, HTTP_METHOD, PRE_MIDDLEWARE, POST_MIDDLEWARE, PRIVATE, AUTH, AUTH_REDIRECT, ROLES, PAGE_GEN} = instance[pathRouteMethod];
             const app = server[PRIVATE ? 'private' : 'public'].router;
             const preMiddlewares = [];
             const postMiddlewares = [];

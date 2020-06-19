@@ -7,6 +7,8 @@ import {IServer} from "../interfaces/IServer";
 import {join} from "path";
 import {apiParameterMetadataKey} from "../symbols";
 import {ParamTypes} from "./Api";
+import {loggerFactory} from "../lib/logger";
+const logger = loggerFactory(module);
 
 export const paths: { [key: string]: any } = [];
 
@@ -99,6 +101,8 @@ export function bindControllers(server: IServer, controllers: Function[]) {
         // @Path
         const pathRouteMethods = getClassMethodsByDecoratedProperty(Clazz, HTTP_METHOD);
         pathRouteMethods.forEach(pathRouteMethod => {
+            const {PATH_ROUTE, HTTP_METHOD, PRE_MIDDLEWARE, POST_MIDDLEWARE, PRIVATE, AUTH, AUTH_REDIRECT, ROLES, PAGE_GEN} = instance[pathRouteMethod];
+
             const wrapperMiddleware = (routingFunction: any) => {
                 return async (req: Request, res: Response, next: NextFunction) => {
                     const params = [];
@@ -119,6 +123,9 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                                 obj = req.body;
                                 break;
                             case 'user':
+                                if(AUTH) {
+                                    logger.error(`Warning: Using @user where a route doesn't have the Authenticated decorator! ${Clazz}:${pathRouteMethod}`);
+                                }
                                 obj = req.user;
                                 break;
                             case 'query':
@@ -173,7 +180,7 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                 }
             };
 
-            const {PATH_ROUTE, HTTP_METHOD, PRE_MIDDLEWARE, POST_MIDDLEWARE, PRIVATE, AUTH, AUTH_REDIRECT, ROLES, PAGE_GEN} = instance[pathRouteMethod];
+            // const {PATH_ROUTE, HTTP_METHOD, PRE_MIDDLEWARE, POST_MIDDLEWARE, PRIVATE, AUTH, AUTH_REDIRECT, ROLES, PAGE_GEN} = instance[pathRouteMethod];
             const app = server[PRIVATE ? 'private' : 'public'].router;
 
 
