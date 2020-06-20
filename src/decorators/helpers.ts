@@ -119,6 +119,9 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                             case 'next':
                                 obj = next;
                                 break;
+                            case 'config':
+                                obj = req.notores;
+                                break;
                             case 'body':
                                 obj = req.body;
                                 break;

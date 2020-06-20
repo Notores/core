@@ -16,6 +16,10 @@ function addApiDecoratorToFunction(type: string, target: any, key: string, index
     Reflect.defineMetadata(apiParameterMetadataKey, existingApiDecorators, target[key]);
 }
 
+export function config(target: any, key: string, index: number) {
+    addApiDecoratorToFunction('config', target, key, index);
+}
+
 export function user(target: any, key: string, index: number) {
     addApiDecoratorToFunction('user', target, key, index);
 }

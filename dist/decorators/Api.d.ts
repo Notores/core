@@ -5,6 +5,7 @@ export declare enum ParamTypes {
     bool = "boolean",
     boolean = "boolean"
 }
+export declare function config(target: any, key: string, index: number): void;
 export declare function user(target: any, key: string, index: number): void;
 export declare function body(target: any, key: string, index: number): void;
 export declare function query(target: any, key: string, index: number): void;
