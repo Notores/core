@@ -82,16 +82,18 @@ function createServer() {
     apps.system.use(passport.initialize());
     apps.system.use(passport.session());
     apps.system.use((req, res, next) => {
-        if (req.isAuthenticated())
-            return next();
-        passport.authenticate('jwt', (err, user, info) => {
-            if (user) {
-                return req.login(user, () => {
-                    next();
-                });
-            }
-            return next();
-        })(req, res, next);
+        if (req.notores.main.authentication.enabled) {
+            if (req.isAuthenticated())
+                return next();
+            passport.authenticate('jwt', (err, user, info) => {
+                if (user) {
+                    return req.login(user, () => {
+                        next();
+                    });
+                }
+                return next();
+            })(req, res, next);
+        }
     });
     apps.system.use(locals);
     apps.main.use(apps.preMiddleware);
