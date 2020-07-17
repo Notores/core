@@ -21,6 +21,9 @@ const defaultCoreConfig: object = {
         issuer: 'ADD_ISSUER',
         audience: 'ADD_AUDIENCE',
     },
+    requests: {
+        responseTypes: ['html', 'json'],
+    },
     useCookie: false,
 };
 const defaultThemeConfig: IThemeConfig = {

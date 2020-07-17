@@ -26,11 +26,15 @@ const { access, readFile } = fs_1.promises;
 class Responder {
     constructor() {
         this.responseHandler = (req, res, next) => {
-            if (res.locals.type === 'html') {
+            const { responseTypes } = req.notores.main.requests;
+            if (responseTypes.includes('html') && res.locals.type === 'html') {
                 return this.htmlResponder(req, res);
             }
-            else {
+            else if (responseTypes.includes('json')) {
                 this.jsonResponder(req, res, next);
+            }
+            else {
+                res.status(415).send('Unsupported Content-Type');
             }
         };
         this.jsonResponder = (req, res, next) => {
@@ -40,7 +44,7 @@ class Responder {
                 res.json({ error: error.message instanceof Error ? error.message.message : error.message });
                 return;
             }
-            res.json(res.locals.toJSON());
+            res.json(res.locals.toJSON('json'));
         };
         this.htmlResponder = async (req, res) => {
             const path = await this.validateThemePaths(this.getThemePaths(req, res), req);

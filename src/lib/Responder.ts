@@ -9,10 +9,13 @@ const {access, readFile} = promises;
 
 class Responder {
     responseHandler = (req: Request, res: Response, next: NextFunction) => {
-        if (res.locals.type === 'html') {
+        const {responseTypes} = req.notores.main.requests;
+        if (responseTypes.includes('html') && res.locals.type === 'html') {
             return this.htmlResponder(req, res);
-        } else {
+        } else if(responseTypes.includes('json')) {
             this.jsonResponder(req, res, next);
+        } else {
+            res.status(415).send('Unsupported Content-Type');
         }
     };
 
@@ -24,7 +27,7 @@ class Responder {
             return;
         }
 
-        res.json(res.locals.toJSON());
+        res.json(res.locals.toJSON('json'));
     };
 
     htmlResponder = async (req: Request, res: Response) => {

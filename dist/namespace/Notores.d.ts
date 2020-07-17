@@ -30,6 +30,9 @@ declare global {
                     issuer: string;
                     audience: string;
                 };
+                requests: {
+                    responseTypes: string[];
+                };
                 [key: string]: any;
             };
             theme: IThemeConfig | boolean;
