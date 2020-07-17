@@ -9,6 +9,7 @@ import {apiParameterMetadataKey} from "../symbols";
 import {ParamTypes} from "./Api";
 import {loggerFactory} from "../lib/logger";
 import {getConfig} from "../lib/config";
+import {SystemLogger} from "../Notores";
 const logger = loggerFactory(module);
 
 export const paths: { [key: string]: any } = [];
@@ -331,6 +332,6 @@ function getClassMethodsByDecoratedProperty(clazz, decoratedPropertyName: string
  */
 export function logWarningIfNoAuthentication(decorator: string, controller: string, func: string) {
     if(!getConfig().main.authentication.enabled) {
-        logger.warn(`WARNING: Route Insecure. Use of @${decorator} in ${controller?.constructor?.name || 'Unknown'}.${func} while authentication is disabled in notores.json`);
+        SystemLogger.warn(`WARNING: Route Insecure. Use of @${decorator} in ${controller?.constructor?.name || 'Unknown'}.${func} while authentication is disabled in notores.json`);
     }
 }
