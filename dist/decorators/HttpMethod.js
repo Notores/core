@@ -13,13 +13,14 @@ function defaultMethodSettings(obj) {
         authenticated: false,
         private: false,
         pages: [],
+        redirect: false,
     };
 }
 function getSettings(set) {
     const base = {
         ...defaultMethodSettings(set),
     };
-    const { PATH_ROUTE, PRE_MIDDLEWARE, POST_MIDDLEWARE, PRIVATE, AUTH, ROLES } = set;
+    const { PATH_ROUTE, PRE_MIDDLEWARE, POST_MIDDLEWARE, PRIVATE, AUTH, ROLES, AUTH_REDIRECT } = set;
     if (PATH_ROUTE) {
         base.path = PATH_ROUTE;
     }
@@ -50,6 +51,7 @@ function normalizeSettingsInput(input) {
         private: input.private,
         roles: Array.isArray(input.roles) ? input.roles : [input.roles],
         pages: Array.isArray(input.pages) ? input.pages : [input.pages],
+        redirect: input.redirect,
     };
 }
 function combineSettings(targetFunction, input) {
@@ -89,6 +91,7 @@ function applySettings(target, settings) {
     target[constants_1.ROLES] = settings.roles;
     target[constants_1.AUTH] = settings.authenticated;
     target[constants_1.PRIVATE] = settings.private;
+    target[constants_1.AUTH_REDIRECT] = settings.redirect;
 }
 function generateHttpMethodDecorator(method, addId = false) {
     return function Path(settings) {
@@ -129,19 +132,19 @@ function Restricted(roles) {
         if (Array.isArray(roles)) {
             target[propertyKey][constants_1.ROLES] = roles;
         }
-        else if (typeof roles === 'string') {
+        else {
             target[propertyKey][constants_1.ROLES] = [roles];
         }
     };
 }
 exports.Restricted = Restricted;
-function Roles(roles = []) {
+function Roles(roles) {
     return (target, propertyKey) => {
         target[propertyKey][constants_1.ROLES] = roles;
     };
 }
 exports.Roles = Roles;
-function Authorized(roles = []) {
+function Authorized(roles) {
     return (target, propertyKey) => {
         target[propertyKey][constants_1.AUTH] = true;
         target[propertyKey][constants_1.ROLES] = roles;

@@ -1,7 +1,7 @@
 import { ModuleMethodDecoratorOptions } from "../interfaces/ModuleMethodDecoratorOptions";
-export declare function Restricted(roles?: string[] | string): (target: any, propertyKey: string) => void;
-export declare function Roles(roles?: string[]): (target: any, propertyKey: string) => void;
-export declare function Authorized(roles?: string[]): (target: any, propertyKey: string) => void;
+export declare function Restricted(roles: string[] | string): (target: any, propertyKey: string) => void;
+export declare function Roles(roles: string[]): (target: any, propertyKey: string) => void;
+export declare function Authorized(roles: string[]): (target: any, propertyKey: string) => void;
 export declare function Authenticated(settings?: {
     redirect: boolean;
 }): (target: any, propertyKey: string) => void;

@@ -21,6 +21,7 @@ interface IMethodDecoratorOptions {
     AUTH?: boolean;
     ROLES?: string[];
     PAGE_GEN?: string[];
+    AUTH_REDIRECT?: boolean;
 }
 
 interface IMethodOptions {
@@ -30,7 +31,8 @@ interface IMethodOptions {
     roles: string[];
     authenticated: boolean;
     private: boolean;
-    pages: string[],
+    pages: string[];
+    redirect: boolean;
 }
 
 type IMethodDecoratorOptionsAndFunction = IMethodDecoratorOptions & Function
@@ -44,6 +46,7 @@ function defaultMethodSettings(obj?: Partial<IMethodDecoratorOptionsAndFunction>
         authenticated: false,
         private: false,
         pages: [],
+        redirect: false,
     }
 }
 
@@ -51,7 +54,7 @@ function getSettings(set: Partial<IMethodDecoratorOptionsAndFunction>) {
     const base = {
         ...defaultMethodSettings(set),
     };
-    const {PATH_ROUTE, PRE_MIDDLEWARE, POST_MIDDLEWARE, PRIVATE, AUTH, ROLES}: IMethodDecoratorOptions = set;
+    const {PATH_ROUTE, PRE_MIDDLEWARE, POST_MIDDLEWARE, PRIVATE, AUTH, ROLES, AUTH_REDIRECT}: IMethodDecoratorOptions = set;
     if (PATH_ROUTE) {
         base.path = PATH_ROUTE;
     }
@@ -83,6 +86,7 @@ function normalizeSettingsInput(input: IMethodOptions): IMethodOptions {
         private: input.private,
         roles: Array.isArray(input.roles) ? input.roles : [input.roles],
         pages: Array.isArray(input.pages) ? input.pages : [input.pages],
+        redirect: input.redirect,
     };
 }
 
@@ -124,6 +128,7 @@ function applySettings(target: any, settings: IMethodOptions) {
     target[ROLES] = settings.roles;
     target[AUTH] = settings.authenticated;
     target[PRIVATE] = settings.private;
+    target[AUTH_REDIRECT] = settings.redirect;
 }
 
 function generateHttpMethodDecorator(method: string, addId = false) {
@@ -163,26 +168,26 @@ function generateHttpMethodDecorator(method: string, addId = false) {
     }
 }
 
-export function Restricted(roles?: string[] | string) {
+export function Restricted(roles: string[] | string) {
     return (target: any, propertyKey: string) => {
         target[propertyKey][AUTH] = true;
         target[propertyKey][PRIVATE] = true;
 
         if (Array.isArray(roles)) {
             target[propertyKey][ROLES] = roles;
-        } else if (typeof roles === 'string') {
+        } else {
             target[propertyKey][ROLES] = [roles];
         }
     }
 }
 
-export function Roles(roles: string[] = []) {
+export function Roles(roles: string[]) {
     return (target: any, propertyKey: string) => {
         target[propertyKey][ROLES] = roles;
     }
 }
 
-export function Authorized(roles: string[] = []) {
+export function Authorized(roles: string[]) {
     return (target: any, propertyKey: string) => {
         target[propertyKey][AUTH] = true;
         target[propertyKey][ROLES] = roles;

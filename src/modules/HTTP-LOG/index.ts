@@ -42,7 +42,7 @@ export default class RequestLogger {
             const logResponse = res.locals.hasError ? `Error ${res.locals.error.status}` : 'success';
 
             logger.info(`HTTP response (${logResponse}):  ${req.method}:${req.originalUrl} (${diffTime} ms)`);
-            if (!res.locals.hasError)
+            if (res.locals.hasError)
                 logger.error(`HTTP error: ${res.locals.error.message}`);
         })
 
