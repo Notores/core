@@ -156,17 +156,19 @@ class Responder {
         if (req.path !== '/' && ['.js', '.ts'].includes(req.path.substr(req.path.length - 3))) {
             paths.push(`${path}`);
         }
-        paths.push(`/pages${path}.ejs`);
-        paths.push(`/partials${path}.ejs`);
-        paths.push(`${path}.ejs`);
-        paths.push(`${path.replace(req.path, '')}/pages${path}.ejs`);
-        paths.push(`${path.replace(req.path, '')}/partials${path}.ejs`);
-        paths.push(`/pages${path}.html`);
-        paths.push(`/partials${path}.html`);
-        paths.push(`${path}.html`);
-        paths.push(`${path.replace(req.path, '')}/pages${path}.html`);
-        paths.push(`${path.replace(req.path, '')}/partials${path}.html`);
+        paths.push(...Responder.createPathsGroup(req, path));
+        paths.push(...Responder.createPathsGroup(req, path, '.ejs'));
+        paths.push(...Responder.createPathsGroup(req, path, '.html'));
         return paths;
+    }
+    static createPathsGroup(req, path, extension = '') {
+        return [
+            `/pages${path}${extension}`,
+            `/partials${path}${extension}`,
+            `${path}${extension}`,
+            `${path.replace(req.path, '')}/pages${path}${extension}`,
+            `${path.replace(req.path, '')}/partials${path}${extension}`,
+        ];
     }
 }
 exports.default = new Responder();

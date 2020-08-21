@@ -7,6 +7,7 @@ declare class Responder {
     private validateThemePaths;
     private getThemePaths;
     private genPaths;
+    private static createPathsGroup;
     serverStatic: (req: Request, res: Response, next: NextFunction) => Promise<void>;
     private generatePaths;
     private getFullThemeDir;

@@ -37,7 +37,7 @@ class Responder {
                 path,
             ));
             const path = await this.validateThemePaths(paths, req);
-            for(let key in res.locals.extended.data) {
+            for (let key in res.locals.extended.data) {
                 res.locals[key] = res.locals.extended.data[key]
             }
             res.locals.content = html;
@@ -111,17 +111,20 @@ class Responder {
         if (req.path !== '/' && ['.js', '.ts'].includes(req.path.substr(req.path.length - 3))) {
             paths.push(`${path}`);
         }
-        paths.push(`/pages${path}.ejs`);
-        paths.push(`/partials${path}.ejs`);
-        paths.push(`${path}.ejs`);
-        paths.push(`${path.replace(req.path, '')}/pages${path}.ejs`);
-        paths.push(`${path.replace(req.path, '')}/partials${path}.ejs`);
-        paths.push(`/pages${path}.html`);
-        paths.push(`/partials${path}.html`);
-        paths.push(`${path}.html`);
-        paths.push(`${path.replace(req.path, '')}/pages${path}.html`);
-        paths.push(`${path.replace(req.path, '')}/partials${path}.html`);
+        paths.push(...Responder.createPathsGroup(req, path));
+        paths.push(...Responder.createPathsGroup(req, path, '.ejs'));
+        paths.push(...Responder.createPathsGroup(req, path, '.html'));
         return paths;
+    }
+
+    private static createPathsGroup(req: Request, path: string, extension: string = ''): Array<string> {
+        return [
+            `/pages${path}${extension}`,
+            `/partials${path}${extension}`,
+            `${path}${extension}`,
+            `${path.replace(req.path, '')}/pages${path}${extension}`,
+            `${path.replace(req.path, '')}/partials${path}${extension}`,
+        ]
     }
 
     serverStatic = async (req: Request, res: Response, next: NextFunction) => {
@@ -131,8 +134,8 @@ class Responder {
 
         const paths = this.generatePaths(req);
 
-        for(let path of paths) {
-            if(path.indexOf('.html') > -1) {
+        for (let path of paths) {
+            if (path.indexOf('.html') > -1) {
                 return next();
             }
         }
@@ -147,7 +150,7 @@ class Responder {
 
         const validatedPath = await this.validateThemePaths(paths, req);
 
-        if(validatedPath.includes('404.ejs')) {
+        if (validatedPath.includes('404.ejs')) {
             return next();
         }
 
