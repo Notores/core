@@ -3,22 +3,37 @@
 This is the core package for the Notores framework.  
 Notores helps you build REST api's with ease and allows you to use a themed website with it (optional).
 
+# Table of contents
+  - [Setup](#setup)
+  - [Start](#start)
+  - [Creating a module](#creating-a-module)
+  - [Notores.json](#notoresjson)
+  - [API](#api)
+    - [@Module](#module)
+    - [REST decorators](#rest-decorators)
+    - [REST settings](#rest-settings)
+    - [Property decorators](#property-decorators)
+      - [ParamTypes enum](#paramtypes-enum)
+  - [Examples](#examples)
+    - [ProductModule](#productmodule)
+
 ## Setup ##
-1. Please make sure to use the latest major version of Node.js (currently 14).
+1. Please make sure to use the latest major version of [Node.js](https://github.com/nvm-sh/nvm#install--update-script).
 2. Run `npm i notores/core` (The Notores framework is still in development and in Beta, this package will be published on NPM soon)
-3. (Optional) Install a database connection module that works with Notores like `npm i notores/typegoose` or `npm i notores/typeorm`
+3. Make sure you have `experimentalDecorators` and `emitDecoratorMetadata` set to `true` in your `tsconfig.json`
+
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true
+
 4. Add a file to your root called `notores.json` with an empty object as content (`{}`). With this file, you can control application settings like:  
     • JWT settings  
     • Should your application use cookies  
     • Should your application use the default passport module for authentication en authorization  
     • Frontend/ backend themes
-5. You're ready to go!
-
-### Sidenote: ###
-The Notores framework works with TypeScript. If you want to use Notores in an existing project, please make sure to update your `tsconfig.json` with the following:
-
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+5. (Optional) Install a database connection module that works with Notores like  
+    • `npm i notores/typegoose`  
+    • [`npm i notores/typeorm`](https://github.com/Notores/typeorm)
+6. You're ready to go!
     
 ## Start ##
 Notores helps you builing REST api's with ease. This does not mean we think we should tell you if and with database to use.
@@ -79,7 +94,7 @@ Example:
 
     @Authenticated() // This checks if the user is authenticated
     @DeleteId() // This adds `/:id` to the route prefix. This is the same as adding `@Delete('/:id')`
-    async deleteProduct(@param('id') productId: number) {
+    async deleteProduct(@param('id') productId: string) {
         /* Insert code */
     }`
 
@@ -124,7 +139,6 @@ JSON structure is as followed:
 
 ### @Module ###
 
-
 `function Module(settings?: ModuleDecoratorOptions | string): ClassDecorator;`
 
 | Property | DataType | Required | Default | Description |
@@ -136,10 +150,7 @@ JSON structure is as followed:
 | repository | any    | false    | null | This should be used for a database repository class. This can be used in functions on `this.repository` |
 
 
-### Decorators ###
-Out of the box, there are the following decorators.
-
-#### REST ####
+### REST decorators ###
 The REST decorators should always be at the bottom as they define the default settings for a REST route.
 
 GOOD:
@@ -154,6 +165,8 @@ BAD:
     @Admin()
     async broken()
 
+Out of the box, there are the following decorators.
+
 | Decorator     	| Parameters                                        	| Description                                                                                                    	|
 |---------------	|---------------------------------------------------	|----------------------------------------------------------------------------------------------------------------	|
 | @Get()        	| settings?: ModuleMethodDecoratorOptions \| string 	| Creating a GET route                                                                                           	|
@@ -166,7 +179,7 @@ BAD:
 | @Delete()     	| settings?: ModuleMethodDecoratorOptions \| string 	| Creating a DELETE route                                                                                         	|
 | @DeleteId()   	| settings?: ModuleMethodDecoratorOptions \| string 	| Creating a DELETE route with "/:id" added to the route                                                         	|
 
-#### REST Settings ####
+### REST settings ###
 
 | Decorator     	| Parameters                                        	| Description                                                                                                    	|
 |---------------	|---------------------------------------------------	|----------------------------------------------------------------------------------------------------------------	|
@@ -179,7 +192,7 @@ BAD:
 | @Private()      	|                                                   	| Private route ('/n-admin') that is only accessible for users that are authenticated.                            	|
 | @Admin()        	|                                                   	| Private route ('/n-admin') that is only accessible for users that are authenticated and have the 'admin' role. 	|
 
-#### Method decorators ####
+### Property decorators ###
 To make your life a lot easier, Notores/core also has a few method decorators.  
 
 | Decorator 	| Parameters                          	| Usage                                           	| Description                                                                                               	|
@@ -194,7 +207,7 @@ To make your life a lot easier, Notores/core also has a few method decorators.
 | @response 	|                                     	| @response res: Response                         	| The express response object                                                                               	|
 | @next     	|                                     	| @next next: NextFunction                        	| The express next function                                                                                 	|
 
-##### ParamTypes enum ##### 
+#### ParamTypes enum ####
 You can use the following ParamTypes that Notores can convert your values to.
 If you need any other, please open a ticket or a PR.
 
@@ -206,9 +219,9 @@ If you need any other, please open a ticket or a PR.
         boolean = 'boolean',
     }
 
-### Examples ###
+## Examples ##
 
-#### ProductModule ####
+### ProductModule ###
     @Module({
         prefix: 'product',
         dataKey: 'products',
