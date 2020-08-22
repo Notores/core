@@ -3,11 +3,11 @@
 This is the core package for the Notores framework.  
 Notores helps you build REST api's with ease and allows you to use a themed website with it (optional).
 
-# Table of contents
-  - [Setup](#setup)
-  - [Start](#start)
-  - [Creating a module](#creating-a-module)
-  - [Notores.json](#notoresjson)
+## Table of contents ##
+  - [Getting started](#getting-started)
+    - [Setup](#setup)
+    - [Creating a module](#creating-a-module)
+    - [Notores.json](#notoresjson)
   - [API](#api)
     - [@Module](#module)
     - [REST decorators](#rest-decorators)
@@ -17,7 +17,11 @@ Notores helps you build REST api's with ease and allows you to use a themed webs
   - [Examples](#examples)
     - [ProductModule](#productmodule)
 
-## Setup ##
+## Getting started ##
+Notores helps you build REST api's with ease. This does not mean we think we should tell you if and with database to use.
+To use a database connection with built in Notores functionality, please check our Git account if we have what you need. If we don't, please tell us what you need or create your own!
+
+### Setup ###
 1. Please make sure to use the latest major version of [Node.js](https://github.com/nvm-sh/nvm#install--update-script).
 2. Run `npm i notores/core` (The Notores framework is still in development and in Beta, this package will be published on NPM soon)
 3. Make sure you have `experimentalDecorators` and `emitDecoratorMetadata` set to `true` in your `tsconfig.json`
@@ -33,25 +37,17 @@ Notores helps you build REST api's with ease and allows you to use a themed webs
 5. (Optional) Install a database connection module that works with Notores like  
     • `npm i notores/typegoose`  
     • [`npm i notores/typeorm`](https://github.com/Notores/typeorm)
-6. You're ready to go!
+6. In your `app.ts`, all you need to add is:
+
+        async function setup() {
+            const app = await NotoresApplication.create();
+            app.start(/* Insert port */); // E.g. process.env.PORT || 3000
+        }
+
+7. You now have the basis of a Notores based REST application!  
+   To add REST routes all you have to do is create a module.
     
-## Start ##
-Notores helps you builing REST api's with ease. This does not mean we think we should tell you if and with database to use.
-To use a database connection with built in notores functionality, please check our Git account if we have what you need. If we don't, please tell us what you need or create your own!
-
-In your app.ts, all you need to add  is:
-
-    async function setup() {
-        const app = await NotoresApplication.create();
-        app.start(/* Insert port */); // E.g. process.env.PORT || 3000
-    }
-    
-You now have the basis of a Notores based REST application!
-
-To add REST routes all you have to do is create a module.
-
-
-## Creating a module ##
+### Creating a module ###
 To create a module, do the following
 1. Add a folder called `app` or `modules`. Anything you like is fine.
 2. Within the app folder, create a new folder for the module you'd like to create, like `products`.
@@ -98,7 +94,7 @@ Example:
         /* Insert code */
     }`
 
-## Notores.json ##
+### Notores.json ###
 This is the configuration file for the Notores application.
 Most of these can be changed during the applications runtime, like theme and content-type, saltRounds, cookie and jwt.
 JSON structure is as followed:
@@ -145,7 +141,7 @@ JSON structure is as followed:
 |----------|----------|----------|---------|-------------|
 | prefix   | string   | false    |''    |REST route prefix for all REST api's in this module (class)|
 | dataKey  | string   | false    | ClassName - Module (Calculated). E.g.:  ProductModule -> product ProdMod -> prodmod | The property key return values are placed in e.g. `{prodmod: returnValue}` |
-| entity   | any      | false    | null | When using a notores module for a database connection, the entity is passed to be loaded by the database and can be used in function on `this.entity` |
+| entity   | any      | false    | null | When using a Notores module for a database connection, the entity is passed to be loaded by the database and can be used in function on `this.entity` |
 | entities | any[]    | false    | null | The same as entity, but these entities are not accessible in functions |
 | repository | any    | false    | null | This should be used for a database repository class. This can be used in functions on `this.repository` |
 
