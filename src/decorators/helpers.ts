@@ -129,9 +129,6 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                                 obj = req.body;
                                 break;
                             case 'user':
-                                if(AUTH) {
-                                    logger.error(`Warning: Using @user where a route doesn't have the Authenticated decorator! ${Clazz}:${pathRouteMethod}`);
-                                }
                                 obj = req.user;
                                 break;
                             case 'query':
