@@ -10,6 +10,7 @@ import {
 } from "../constants";
 import { loggerFactory } from "../lib/logger";
 import { ModuleMethodDecoratorOptions } from "../interfaces/ModuleMethodDecoratorOptions";
+import {logWarningIfNoAuthentication} from "./helpers";
 
 const logger = loggerFactory(module);
 
@@ -170,6 +171,7 @@ function generateHttpMethodDecorator(method: string, addId = false) {
 
 export function Restricted(roles: string[] | string) {
     return (target: any, propertyKey: string) => {
+        logWarningIfNoAuthentication('Restricted', target, propertyKey);
         target[propertyKey][AUTH] = true;
         target[propertyKey][PRIVATE] = true;
 
@@ -183,12 +185,14 @@ export function Restricted(roles: string[] | string) {
 
 export function Roles(roles: string[]) {
     return (target: any, propertyKey: string) => {
+        logWarningIfNoAuthentication('Roles', target, propertyKey);
         target[propertyKey][ROLES] = roles;
     }
 }
 
 export function Authorized(roles: string[]) {
     return (target: any, propertyKey: string) => {
+        logWarningIfNoAuthentication('Authorized', target, propertyKey);
         target[propertyKey][AUTH] = true;
         target[propertyKey][ROLES] = roles;
     }
@@ -196,6 +200,7 @@ export function Authorized(roles: string[]) {
 
 export function Authenticated(settings = {redirect: false}) {
     return (target: any, propertyKey: string) => {
+        logWarningIfNoAuthentication('Authenticated', target, propertyKey);
         target[propertyKey][AUTH] = true;
         target[propertyKey][AUTH_REDIRECT] = settings.redirect;
     }
@@ -203,6 +208,7 @@ export function Authenticated(settings = {redirect: false}) {
 
 export function Admin() {
     return (target: any, propertyKey: string) => {
+        logWarningIfNoAuthentication('Admin', target, propertyKey);
         target[propertyKey][AUTH] = true;
         target[propertyKey][PRIVATE] = true;
         target[propertyKey][ROLES] = ['admin'];

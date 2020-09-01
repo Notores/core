@@ -8,6 +8,8 @@ import {join} from "path";
 import {apiParameterMetadataKey} from "../symbols";
 import {ParamTypes} from "./Api";
 import {loggerFactory} from "../lib/logger";
+import {getConfig} from "../lib/config";
+import {SystemLogger} from "../Notores";
 const logger = loggerFactory(module);
 
 export const paths: { [key: string]: any } = [];
@@ -18,6 +20,7 @@ export const paths: { [key: string]: any } = [];
  * @param controllers - controller classes (rest parameter) decorated with @Root and @Path/@Use
  */
 export function bindControllers(server: IServer, controllers: Function[]) {
+    const useAuthentication = getConfig().main.authentication.enabled;
     const ctrls = [];
     for (const Clazz of controllers) {
         const instance = new (<any>Clazz)();
@@ -42,7 +45,7 @@ export function bindControllers(server: IServer, controllers: Function[]) {
 
             const wrapperMiddleware = (routingFunction: any) => {
                 return async (req: Request, res: Response, next: NextFunction) => {
-                    if (AUTH && !req.user) {
+                    if(useAuthentication && AUTH && !req.user) {
                         return next();
                     }
 
@@ -190,7 +193,7 @@ export function bindControllers(server: IServer, controllers: Function[]) {
             const preMiddlewares: Function[] = [];
             const postMiddlewares: Function[] = [];
 
-            if (AUTH) {
+            if (useAuthentication && AUTH) {
                 preMiddlewares.push(
                     (req: Request, res: Response, next: NextFunction) => {
                         if (!req.isAuthenticated()) {
@@ -319,4 +322,16 @@ function getClassMethodsByDecoratedProperty(clazz, decoratedPropertyName: string
     }
     // returns an array of *unique* method names
     return clazzMethods.filter((methodName, index, array) => array.indexOf(methodName) === index);
+}
+
+/**
+ * Send a warning to console and logs if authentication is not enabled
+ * @param decorator - the name of the decorator
+ * @param controller - controller that contains the function that was decorated
+ * @param func - the function name that was decorated by an authentication related decorator
+ */
+export function logWarningIfNoAuthentication(decorator: string, controller: string, func: string) {
+    if(!getConfig().main.authentication.enabled) {
+        SystemLogger.warn(`WARNING: Route Insecure. Use of @${decorator} in ${controller?.constructor?.name || 'Unknown'}.${func} while authentication is disabled in notores.json`);
+    }
 }

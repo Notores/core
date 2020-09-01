@@ -89,22 +89,24 @@ export function createServer(): IServer {
     apps.system.use(bodyParser.json({limit: serverConfig.requestSizeLimit}));
     apps.system.use(bodyParser.urlencoded({extended: true, limit: serverConfig.requestSizeLimit}));
 
-    apps.system.use(passport.initialize());
-    apps.system.use(passport.session());
+    if (mainConfig.authentication.enabled) {
+        apps.system.use(passport.initialize());
+        apps.system.use(passport.session());
 
-    apps.system.use((req: Request, res: Response, next: NextFunction) => {
-        if (req.isAuthenticated())
-            return next();
+        apps.system.use((req: Request, res: Response, next: NextFunction) => {
+            if (req.isAuthenticated())
+                return next();
 
-        passport.authenticate('jwt', (err: Error, user: Notores.user, info: any) => {
-            if (user) {
-                return req.login(user, () => {
-                    next();
-                });
-            }
-            return next();
-        })(req, res, next);
-    });
+            passport.authenticate('jwt', (err: Error, user: Notores.user, info: any) => {
+                if (user) {
+                    return req.login(user, () => {
+                        next();
+                    });
+                }
+                return next();
+            })(req, res, next);
+        });
+    }
 
     apps.system.use(locals);
 
@@ -117,29 +119,32 @@ export function createServer(): IServer {
     apps.public.main.use(apps.public.postMiddleware);
 
     apps.main.use('/n-admin', apps.private.main);
-    apps.private.main.use((req: Request, res: Response, next: NextFunction) => {
 
-        if (!req.isAuthenticated()) {
-            if (res.locals.type === 'html') {
-                // console.log('redirecting to login...');
-                return res.redirect('/login');
-            } else {
-                res.locals.error = {status: 401, message: 'Unauthenticated'};
-            }
-        } else {
-            if (req.user!.roles.length === 0) {
+    if (mainConfig.authentication.enabled) {
+        apps.private.main.use((req: Request, res: Response, next: NextFunction) => {
+            if (!req.isAuthenticated()) {
                 if (res.locals.type === 'html') {
-                    return res.redirect('/profile');
+                    // console.log('redirecting to login...');
+                    return res.redirect('/login');
                 } else {
-                    res.locals.error = {status: 403, message: 'Unauthorized'};
+                    res.locals.error = {status: 401, message: 'Unauthenticated'};
+                }
+            } else {
+                if (req.user!.roles.length === 0) {
+                    if (res.locals.type === 'html') {
+                        return res.redirect('/profile');
+                    } else {
+                        res.locals.error = {status: 403, message: 'Unauthorized'};
+                    }
                 }
             }
-        }
-
+            return next();
+        });
+    }
+    apps.private.main.use((req: Request, res: Response, next: NextFunction) => {
         if (res.locals.hasError) {
             return Responder.jsonResponder(req, res, next);
         }
-
         return next();
     });
 
