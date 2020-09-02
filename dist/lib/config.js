@@ -11,6 +11,7 @@ const rootDir = process.cwd();
 const notoresConfigFileName = 'notores.json';
 const defaultCoreConfig = {
     authentication: {
+        enabled: true,
         usernameField: 'email',
         saltRounds: 15,
     },

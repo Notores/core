@@ -13,6 +13,7 @@ const notoresConfigFileName = 'notores.json';
 
 const defaultCoreConfig: object = {
     authentication: {
+        enabled: true,
         usernameField: 'email',
         saltRounds: 15,
     },

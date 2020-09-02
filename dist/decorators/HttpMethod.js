@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DeleteId = exports.PatchId = exports.PutId = exports.GetId = exports.Delete = exports.Patch = exports.Put = exports.Post = exports.Get = exports.Page = exports.Middleware = exports.Private = exports.Admin = exports.Authenticated = exports.Authorized = exports.Roles = exports.Restricted = void 0;
 const constants_1 = require("../constants");
 const logger_1 = require("../lib/logger");
+const helpers_1 = require("./helpers");
 const logger = logger_1.loggerFactory(module);
 function defaultMethodSettings(obj) {
     return {
@@ -127,6 +128,7 @@ function generateHttpMethodDecorator(method, addId = false) {
 }
 function Restricted(roles) {
     return (target, propertyKey) => {
+        helpers_1.logWarningIfNoAuthentication('Restricted', target, propertyKey);
         target[propertyKey][constants_1.AUTH] = true;
         target[propertyKey][constants_1.PRIVATE] = true;
         if (Array.isArray(roles)) {
@@ -140,12 +142,14 @@ function Restricted(roles) {
 exports.Restricted = Restricted;
 function Roles(roles) {
     return (target, propertyKey) => {
+        helpers_1.logWarningIfNoAuthentication('Roles', target, propertyKey);
         target[propertyKey][constants_1.ROLES] = roles;
     };
 }
 exports.Roles = Roles;
 function Authorized(roles) {
     return (target, propertyKey) => {
+        helpers_1.logWarningIfNoAuthentication('Authorized', target, propertyKey);
         target[propertyKey][constants_1.AUTH] = true;
         target[propertyKey][constants_1.ROLES] = roles;
     };
@@ -153,6 +157,7 @@ function Authorized(roles) {
 exports.Authorized = Authorized;
 function Authenticated(settings = { redirect: false }) {
     return (target, propertyKey) => {
+        helpers_1.logWarningIfNoAuthentication('Authenticated', target, propertyKey);
         target[propertyKey][constants_1.AUTH] = true;
         target[propertyKey][constants_1.AUTH_REDIRECT] = settings.redirect;
     };
@@ -160,6 +165,7 @@ function Authenticated(settings = { redirect: false }) {
 exports.Authenticated = Authenticated;
 function Admin() {
     return (target, propertyKey) => {
+        helpers_1.logWarningIfNoAuthentication('Admin', target, propertyKey);
         target[propertyKey][constants_1.AUTH] = true;
         target[propertyKey][constants_1.PRIVATE] = true;
         target[propertyKey][constants_1.ROLES] = ['admin'];
