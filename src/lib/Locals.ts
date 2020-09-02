@@ -193,10 +193,10 @@ export class Locals implements KeyValueObject {
         return this._path;
     }
 
-    toJSON() {
+    toJSON(forType: string = '') {
         let obj: KeyValueObject = {...this._body};
 
-        if (this._type === 'html')
+        if (!forType && this._type === 'html' || forType === 'html')
             Locals.toJsonKeys.forEach(key => {
                 obj[key] = (this as KeyValueObject)[key]
             });

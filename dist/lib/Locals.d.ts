@@ -67,7 +67,7 @@ export declare class Locals implements KeyValueObject {
     get payload(): {};
     get url(): string;
     get path(): string;
-    toJSON(): KeyValueObject;
+    toJSON(forType?: string): KeyValueObject;
 }
 export {};
 //# sourceMappingURL=Locals.d.ts.map
