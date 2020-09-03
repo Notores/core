@@ -1,11 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NotoresApplication = void 0;
+exports.NotoresApplication = exports.SystemLogger = void 0;
 const helpers_1 = require("./decorators/helpers");
 const server_1 = require("./server");
 require("./namespace/Notores");
 const logger_1 = require("./lib/logger");
 const logger = logger_1.loggerFactory(module);
+exports.SystemLogger = logger_1.systemLoggerFactory('@notores/core');
 let NotoresApplication = /** @class */ (() => {
     class NotoresApplication {
         constructor(modules) {

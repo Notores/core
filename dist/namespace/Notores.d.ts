@@ -22,7 +22,7 @@ declare global {
                 useCookie: boolean;
                 cookieSecret?: string;
                 authentication: {
-                    enabled: true;
+                    enabled: boolean;
                     usernameField: string;
                     saltRounds: number;
                 };
