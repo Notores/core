@@ -52,7 +52,7 @@ class Responder {
 
     private render = async (path: string, data: Locals) => {
         const template = await readFile(path, 'utf-8');
-        return ejs.render(template, data, {cache: false, filename: path});
+        return ejs.render(template, data, {cache: false, filename: path, async: true});
     };
 
     private validateThemePaths = async (paths: string[], req: Request): Promise<string> => {
