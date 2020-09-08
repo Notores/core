@@ -1,5 +1,6 @@
 import { IServer } from "./interfaces/IServer";
 import './namespace/Notores';
+export declare const SystemLogger: import("winston").Logger;
 export declare class NotoresApplication {
     static entities: any[];
     static repositories: any[];

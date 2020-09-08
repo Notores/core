@@ -8,6 +8,7 @@ const symbols_1 = require("../symbols");
 const Api_1 = require("./Api");
 const logger_1 = require("../lib/logger");
 const config_1 = require("../lib/config");
+const Notores_1 = require("../Notores");
 const logger = logger_1.loggerFactory(module);
 exports.paths = [];
 /**
@@ -109,9 +110,6 @@ function bindControllers(server, controllers) {
                                 obj = req.body;
                                 break;
                             case 'user':
-                                if (AUTH) {
-                                    logger.error(`Warning: Using @user where a route doesn't have the Authenticated decorator! ${Clazz}:${pathRouteMethod}`);
-                                }
                                 obj = req.user;
                                 break;
                             case 'query':
@@ -277,7 +275,7 @@ function getClassMethodsByDecoratedProperty(clazz, decoratedPropertyName, foundM
 function logWarningIfNoAuthentication(decorator, controller, func) {
     var _a;
     if (!config_1.getConfig().main.authentication.enabled) {
-        logger.warn(`WARNING: Route Insecure. Use of @${decorator} in ${((_a = controller === null || controller === void 0 ? void 0 : controller.constructor) === null || _a === void 0 ? void 0 : _a.name) || 'Unknown'}.${func} while authentication is disabled in notores.json`);
+        Notores_1.SystemLogger.warn(`WARNING: Route Insecure. Use of @${decorator} in ${((_a = controller === null || controller === void 0 ? void 0 : controller.constructor) === null || _a === void 0 ? void 0 : _a.name) || 'Unknown'}.${func} while authentication is disabled in notores.json`);
     }
 }
 exports.logWarningIfNoAuthentication = logWarningIfNoAuthentication;

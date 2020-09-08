@@ -5,7 +5,7 @@ import {constants as fsConstants, promises} from 'fs';
 import {Locals} from './Locals';
 import * as ejs from 'ejs';
 
-const {access, readFile} = promises;
+const {access, readFile, stat} = promises;
 
 class Responder {
     responseHandler = (req: Request, res: Response, next: NextFunction) => {
@@ -59,6 +59,10 @@ class Responder {
         for (let i = 0; i < paths.length; i++) {
             try {
                 await access(paths[i], fsConstants.R_OK);
+                const statResult = await stat(paths[i]);
+                if(statResult.isDirectory()) {
+                    throw new Error('Path is directory');
+                }
                 return paths[i];
             } catch (e) {
                 // console.log('Path NOT OK');

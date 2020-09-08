@@ -22,7 +22,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const path_1 = require("path");
 const fs_1 = require("fs");
 const ejs = __importStar(require("ejs"));
-const { access, readFile } = fs_1.promises;
+const { access, readFile, stat } = fs_1.promises;
 class Responder {
     constructor() {
         this.responseHandler = (req, res, next) => {
@@ -68,6 +68,10 @@ class Responder {
             for (let i = 0; i < paths.length; i++) {
                 try {
                     await access(paths[i], fs_1.constants.R_OK);
+                    const statResult = await stat(paths[i]);
+                    if (statResult.isDirectory()) {
+                        throw new Error('Path is directory');
+                    }
                     return paths[i];
                 }
                 catch (e) {
