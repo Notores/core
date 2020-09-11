@@ -82,18 +82,16 @@ class Responder {
         };
         this.getThemePaths = (req, res) => {
             const pages = [];
+            res.locals.pages.forEach((page) => {
+                pages.push(...this.genPaths(req, page));
+            });
+            pages.push(...this.genPaths(req, req.path));
+            if (req.path === '/') {
+                pages.push(...this.genPaths(req, '/index'));
+            }
             if (res.locals.hasError) {
                 pages.push(...this.genPaths(req, `/${res.locals.error.status}`));
                 pages.push(...this.genPaths(req, `/500`));
-            }
-            else {
-                res.locals.pages.forEach((page) => {
-                    pages.push(...this.genPaths(req, page));
-                });
-                pages.push(...this.genPaths(req, req.path));
-                if (req.path === '/') {
-                    pages.push(...this.genPaths(req, '/index'));
-                }
             }
             pages.push(...this.genPaths(req, '/404'));
             const paths = [];
