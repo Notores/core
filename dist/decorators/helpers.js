@@ -144,8 +144,8 @@ function bindControllers(server, controllers) {
                     params.push(next);
                     const result = await routingFunction(...params);
                     let body;
-                    if (req.method === 'GET' && res.headersSent) {
-                        return;
+                    if (result === null || result === undefined) {
+                        return next();
                     }
                     if (typeof result === 'object' && !Array.isArray(result) && result.hasOwnProperty(dataKey)) {
                         body = result;
@@ -155,6 +155,12 @@ function bindControllers(server, controllers) {
                     }
                     else {
                         body = { [dataKey]: result };
+                    }
+                    if (PAGE_GEN) {
+                        res.locals.addPageLocations([
+                            path_1.join(modulePath, 'pages')
+                        ]);
+                        res.locals.addPages(PAGE_GEN);
                     }
                     res.locals.setBody(body);
                     next();
@@ -197,15 +203,6 @@ function bindControllers(server, controllers) {
                     else {
                         return next();
                     }
-                });
-            }
-            if (PAGE_GEN) {
-                postMiddlewares.push((req, res, next) => {
-                    res.locals.addPageLocations([
-                        path_1.join(modulePath, 'pages')
-                    ]);
-                    res.locals.addPages(PAGE_GEN);
-                    return next();
                 });
             }
             function addMiddleware(value, middlewareArray) {

@@ -26,6 +26,9 @@ const { access, readFile, stat } = fs_1.promises;
 class Responder {
     constructor() {
         this.responseHandler = (req, res, next) => {
+            if (res.headersSent) {
+                return;
+            }
             const { responseTypes } = req.notores.main.requests;
             if (responseTypes.includes('html') && res.locals.type === 'html') {
                 return this.htmlResponder(req, res);

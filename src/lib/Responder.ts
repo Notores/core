@@ -9,6 +9,10 @@ const {access, readFile, stat} = promises;
 
 class Responder {
     responseHandler = (req: Request, res: Response, next: NextFunction) => {
+        if(res.headersSent) {
+            return;
+        }
+
         const {responseTypes} = req.notores.main.requests;
         if (responseTypes.includes('html') && res.locals.type === 'html') {
             return this.htmlResponder(req, res);
