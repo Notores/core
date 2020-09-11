@@ -13,6 +13,7 @@ const notoresConfigFileName = 'notores.json';
 
 const defaultCoreConfig: object = {
     authentication: {
+        enabled: true,
         usernameField: 'email',
         saltRounds: 15,
     },
@@ -20,6 +21,9 @@ const defaultCoreConfig: object = {
         secretOrKey: 'OVERWRITE THIS COOKIE PROPERTY', // TODO Maybe autogenerate notores.json file if not set??
         issuer: 'ADD_ISSUER',
         audience: 'ADD_AUDIENCE',
+    },
+    requests: {
+        responseTypes: ['html', 'json'],
     },
     useCookie: false,
 };

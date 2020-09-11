@@ -11,6 +11,7 @@ const rootDir = process.cwd();
 const notoresConfigFileName = 'notores.json';
 const defaultCoreConfig = {
     authentication: {
+        enabled: true,
         usernameField: 'email',
         saltRounds: 15,
     },
@@ -18,6 +19,9 @@ const defaultCoreConfig = {
         secretOrKey: 'OVERWRITE THIS COOKIE PROPERTY',
         issuer: 'ADD_ISSUER',
         audience: 'ADD_AUDIENCE',
+    },
+    requests: {
+        responseTypes: ['html', 'json'],
     },
     useCookie: false,
 };

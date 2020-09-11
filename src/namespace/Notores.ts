@@ -20,6 +20,7 @@ declare global {
                 useCookie: boolean; // default: true
                 cookieSecret?: string;
                 authentication: {
+                    enabled: boolean; // default: true
                     usernameField: string; // default: email
                     saltRounds: number; // default: 15
                 };
@@ -27,6 +28,9 @@ declare global {
                     secretOrKey: string;
                     issuer: string;
                     audience: string;
+                };
+                requests: {
+                    responseTypes: string[];
                 };
                 [key: string]: any;
 

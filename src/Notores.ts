@@ -2,10 +2,11 @@ import {bindControllers, paths} from "./decorators/helpers";
 import {createServer} from "./server";
 import {IServer} from "./interfaces/IServer";
 import './namespace/Notores';
-import {loggerFactory} from "./lib/logger";
+import {loggerFactory, systemLoggerFactory} from './lib/logger';
 import {Request, Response, NextFunction} from "express";
 
 const logger = loggerFactory(module);
+export const SystemLogger = systemLoggerFactory('@notores/core');
 
 export class NotoresApplication {
 

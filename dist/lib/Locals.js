@@ -146,9 +146,9 @@ let Locals = /** @class */ (() => {
         get path() {
             return this._path;
         }
-        toJSON() {
+        toJSON(forType = '') {
             let obj = { ...this._body };
-            if (this._type === 'html')
+            if (!forType && this._type === 'html' || forType === 'html')
                 Locals.toJsonKeys.forEach(key => {
                     obj[key] = this[key];
                 });

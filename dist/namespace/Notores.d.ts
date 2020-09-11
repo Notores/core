@@ -22,6 +22,7 @@ declare global {
                 useCookie: boolean;
                 cookieSecret?: string;
                 authentication: {
+                    enabled: boolean;
                     usernameField: string;
                     saltRounds: number;
                 };
@@ -29,6 +30,9 @@ declare global {
                     secretOrKey: string;
                     issuer: string;
                     audience: string;
+                };
+                requests: {
+                    responseTypes: string[];
                 };
                 [key: string]: any;
             };

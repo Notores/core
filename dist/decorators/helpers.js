@@ -1,12 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.bindControllers = exports.paths = void 0;
+exports.logWarningIfNoAuthentication = exports.bindControllers = exports.paths = void 0;
 require("reflect-metadata");
 const constants_1 = require("../constants");
 const path_1 = require("path");
 const symbols_1 = require("../symbols");
 const Api_1 = require("./Api");
 const logger_1 = require("../lib/logger");
+const config_1 = require("../lib/config");
+const Notores_1 = require("../Notores");
 const logger = logger_1.loggerFactory(module);
 exports.paths = [];
 /**
@@ -15,6 +17,7 @@ exports.paths = [];
  * @param controllers - controller classes (rest parameter) decorated with @Root and @Path/@Use
  */
 function bindControllers(server, controllers) {
+    const useAuthentication = config_1.getConfig().main.authentication.enabled;
     const ctrls = [];
     for (const Clazz of controllers) {
         const instance = new Clazz();
@@ -35,7 +38,7 @@ function bindControllers(server, controllers) {
             const { PATH_ROUTE, HTTP_METHOD, IS_PRE_MIDDLEWARE, IS_POST_MIDDLEWARE, PRIVATE, AUTH, ROLES } = instance[middlewareDeclarationMethod];
             const wrapperMiddleware = (routingFunction) => {
                 return async (req, res, next) => {
-                    if (AUTH && !req.user) {
+                    if (useAuthentication && AUTH && !req.user) {
                         return next();
                     }
                     const result = await routingFunction(req, res, next);
@@ -107,9 +110,6 @@ function bindControllers(server, controllers) {
                                 obj = req.body;
                                 break;
                             case 'user':
-                                if (AUTH) {
-                                    logger.error(`Warning: Using @user where a route doesn't have the Authenticated decorator! ${Clazz}:${pathRouteMethod}`);
-                                }
                                 obj = req.user;
                                 break;
                             case 'query':
@@ -164,7 +164,7 @@ function bindControllers(server, controllers) {
             const app = server[PRIVATE ? 'private' : 'public'].router;
             const preMiddlewares = [];
             const postMiddlewares = [];
-            if (AUTH) {
+            if (useAuthentication && AUTH) {
                 preMiddlewares.push((req, res, next) => {
                     if (!req.isAuthenticated()) {
                         res.locals.error = { status: 403, message: 'Not Authenticated' };
@@ -266,3 +266,16 @@ function getClassMethodsByDecoratedProperty(clazz, decoratedPropertyName, foundM
     // returns an array of *unique* method names
     return clazzMethods.filter((methodName, index, array) => array.indexOf(methodName) === index);
 }
+/**
+ * Send a warning to console and logs if authentication is not enabled
+ * @param decorator - the name of the decorator
+ * @param controller - controller that contains the function that was decorated
+ * @param func - the function name that was decorated by an authentication related decorator
+ */
+function logWarningIfNoAuthentication(decorator, controller, func) {
+    var _a;
+    if (!config_1.getConfig().main.authentication.enabled) {
+        Notores_1.SystemLogger.warn(`WARNING: Route Insecure. Use of @${decorator} in ${((_a = controller === null || controller === void 0 ? void 0 : controller.constructor) === null || _a === void 0 ? void 0 : _a.name) || 'Unknown'}.${func} while authentication is disabled in notores.json`);
+    }
+}
+exports.logWarningIfNoAuthentication = logWarningIfNoAuthentication;
