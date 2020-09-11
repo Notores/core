@@ -62,7 +62,7 @@ class Responder {
         };
         this.render = async (path, data) => {
             const template = await readFile(path, 'utf-8');
-            return ejs.render(template, data, { cache: false, filename: path });
+            return ejs.render(template, data, { cache: false, filename: path, async: true });
         };
         this.validateThemePaths = async (paths, req) => {
             for (let i = 0; i < paths.length; i++) {
