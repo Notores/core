@@ -10,6 +10,7 @@ import {ParamTypes} from "./Api";
 import {loggerFactory} from "../lib/logger";
 import {getConfig} from "../lib/config";
 import {SystemLogger} from "../Notores";
+
 const logger = loggerFactory(module);
 
 export const paths: { [key: string]: any } = [];
@@ -45,7 +46,7 @@ export function bindControllers(server: IServer, controllers: Function[]) {
 
             const wrapperMiddleware = (routingFunction: any) => {
                 return async (req: Request, res: Response, next: NextFunction) => {
-                    if(useAuthentication && AUTH && !req.user) {
+                    if (useAuthentication && AUTH && !req.user) {
                         return next();
                     }
 
@@ -110,9 +111,9 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                 return async (req: Request, res: Response, next: NextFunction) => {
                     const params = [];
                     let existingApiDecorators = Reflect.getOwnMetadata(apiParameterMetadataKey, instance[pathRouteMethod]) ?? [];
-                    existingApiDecorators.forEach((d: {type: string, index: number, data?: any}) => {
+                    existingApiDecorators.forEach((d: { type: string, index: number, data?: any }) => {
                         let obj;
-                        switch(d.type) {
+                        switch (d.type) {
                             case 'request':
                                 obj = req;
                                 break;
@@ -139,8 +140,8 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                                 break;
                             case 'param':
                                 let val: any = req.params[d.data!.key]
-                                if(d.data!.type) {
-                                    switch(d.data!.type) {
+                                if (d.data!.type) {
+                                    switch (d.data!.type) {
                                         case ParamTypes.int:
                                         case ParamTypes.integer:
                                             val = parseInt(val);
@@ -167,8 +168,8 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                     const result = await routingFunction(...params);
                     let body;
 
-                    if (req.method === 'GET' && res.headersSent) {
-                        return;
+                    if (result === null || result === undefined) {
+                        return next();
                     }
 
                     if (typeof result === 'object' && !Array.isArray(result) && result.hasOwnProperty(dataKey)) {
@@ -178,6 +179,16 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                     } else {
                         body = {[dataKey]: result};
                     }
+
+                    if (PAGE_GEN) {
+                        res.locals.addPageLocations([
+                            join(modulePath, 'pages')
+                        ]);
+                        res.locals.addPages(
+                            PAGE_GEN
+                        );
+                    }
+
                     res.locals.setBody(body);
                     next();
                 }
@@ -228,21 +239,6 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                     }
                 )
             }
-
-            if (PAGE_GEN) {
-                postMiddlewares.push(
-                    (req: Request, res: Response, next: NextFunction) => {
-                        res.locals.addPageLocations([
-                            join(modulePath, 'pages')
-                        ]);
-                        res.locals.addPages(
-                            PAGE_GEN
-                        );
-                        return next();
-                    }
-                );
-            }
-
 
             function addMiddleware(value: string | string[] | Function | Function[], middlewareArray: Function[]) {
                 if (!value)
@@ -328,7 +324,7 @@ function getClassMethodsByDecoratedProperty(clazz, decoratedPropertyName: string
  * @param func - the function name that was decorated by an authentication related decorator
  */
 export function logWarningIfNoAuthentication(decorator: string, controller: string, func: string) {
-    if(!getConfig().main.authentication.enabled) {
+    if (!getConfig().main.authentication.enabled) {
         SystemLogger.warn(`WARNING: Route Insecure. Use of @${decorator} in ${controller?.constructor?.name || 'Unknown'}.${func} while authentication is disabled in notores.json`);
     }
 }

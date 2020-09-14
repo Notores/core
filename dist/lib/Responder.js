@@ -26,6 +26,9 @@ const { access, readFile, stat } = fs_1.promises;
 class Responder {
     constructor() {
         this.responseHandler = (req, res, next) => {
+            if (res.headersSent) {
+                return;
+            }
             const { responseTypes } = req.notores.main.requests;
             if (responseTypes.includes('html') && res.locals.type === 'html') {
                 return this.htmlResponder(req, res);
@@ -82,18 +85,16 @@ class Responder {
         };
         this.getThemePaths = (req, res) => {
             const pages = [];
+            res.locals.pages.forEach((page) => {
+                pages.push(...this.genPaths(req, page));
+            });
+            pages.push(...this.genPaths(req, req.path));
+            if (req.path === '/') {
+                pages.push(...this.genPaths(req, '/index'));
+            }
             if (res.locals.hasError) {
                 pages.push(...this.genPaths(req, `/${res.locals.error.status}`));
                 pages.push(...this.genPaths(req, `/500`));
-            }
-            else {
-                res.locals.pages.forEach((page) => {
-                    pages.push(...this.genPaths(req, page));
-                });
-                pages.push(...this.genPaths(req, req.path));
-                if (req.path === '/') {
-                    pages.push(...this.genPaths(req, '/index'));
-                }
             }
             pages.push(...this.genPaths(req, '/404'));
             const paths = [];
