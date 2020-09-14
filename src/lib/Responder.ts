@@ -9,10 +9,14 @@ const {access, readFile, stat} = promises;
 
 class Responder {
     responseHandler = (req: Request, res: Response, next: NextFunction) => {
+        if(res.headersSent) {
+            return;
+        }
+
         const {responseTypes} = req.notores.main.requests;
         if (responseTypes.includes('html') && res.locals.type === 'html') {
             return this.htmlResponder(req, res);
-        } else if(responseTypes.includes('json')) {
+        } else if (responseTypes.includes('json')) {
             this.jsonResponder(req, res, next);
         } else {
             res.status(415).send('Unsupported Content-Type');
@@ -60,7 +64,7 @@ class Responder {
             try {
                 await access(paths[i], fsConstants.R_OK);
                 const statResult = await stat(paths[i]);
-                if(statResult.isDirectory()) {
+                if (statResult.isDirectory()) {
                     throw new Error('Path is directory');
                 }
                 return paths[i];
@@ -73,19 +77,18 @@ class Responder {
 
     private getThemePaths = (req: Request, res: Response) => {
         const pages: string[] = [];
+        res.locals.pages.forEach((page: string) => {
+            pages.push(...this.genPaths(req, page))
+        });
+        pages.push(
+            ...this.genPaths(req, req.path)
+        );
+        if (req.path === '/') {
+            pages.push(...this.genPaths(req, '/index'));
+        }
         if (res.locals.hasError) {
             pages.push(...this.genPaths(req, `/${res.locals.error.status}`));
             pages.push(...this.genPaths(req, `/500`));
-        } else {
-            res.locals.pages.forEach((page: string) => {
-                pages.push(...this.genPaths(req, page))
-            });
-            pages.push(
-                ...this.genPaths(req, req.path)
-            );
-            if (req.path === '/') {
-                pages.push(...this.genPaths(req, '/index'));
-            }
         }
         pages.push(...this.genPaths(req, '/404'));
 
