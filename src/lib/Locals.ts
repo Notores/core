@@ -1,6 +1,9 @@
 import '../namespace/Notores'
 import {Request, Response, NextFunction} from "express";
-import { MiddlewareFunction } from '../namespace/Notores';
+import {MiddlewareFunction} from '../namespace/Notores';
+import {join} from 'path';
+import Responder from './Responder';
+
 interface KeyValueObject {
     [key: string]: any;
 }
@@ -54,7 +57,7 @@ export class Locals implements KeyValueObject {
     private _extended: boolean | { path: string; data: any } = false;
     private _ejs_paths: string[] = [];
     private _ejs_pages: string[] = [];
-
+    public currentRenderPath?: string;
 
     constructor(req: Request) {
         this._authenticated = req.isAuthenticated();
@@ -76,7 +79,7 @@ export class Locals implements KeyValueObject {
     }
 
     env(envCheck = 'production') {
-        return this.NODE_ENV === envCheck
+        return this.NODE_ENV === envCheck;
     }
 
     setBody(body: object, overwrite = false) {
@@ -108,6 +111,17 @@ export class Locals implements KeyValueObject {
     extend = (path: string, data: any) => {
         this._extended = {path, data};
     };
+
+    include = async (path: string, obj?: object) => {
+        const filePath = join(this.currentRenderPath!, '..', path);
+
+        for (let key in obj) {
+            // @ts-ignore
+            this[key] = obj[key];
+        }
+
+        return await Responder.render(filePath, this);
+    }
 
     get extended() {
         return this._extended;
@@ -209,7 +223,6 @@ const defaultExport: MiddlewareFunction = (req: Request, res: Response, next: Ne
     res.locals = new Locals(req);
     next();
 };
-
 
 module.exports = defaultExport;
 

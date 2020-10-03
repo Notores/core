@@ -1,7 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Locals = void 0;
 require("../namespace/Notores");
+const path_1 = require("path");
+const Responder_1 = __importDefault(require("./Responder"));
 let Locals = /** @class */ (() => {
     class Locals {
         constructor(req) {
@@ -23,6 +28,14 @@ let Locals = /** @class */ (() => {
             this._ejs_pages = [];
             this.extend = (path, data) => {
                 this._extended = { path, data };
+            };
+            this.include = async (path, obj) => {
+                const filePath = path_1.join(this.currentRenderPath, '..', path);
+                for (let key in obj) {
+                    // @ts-ignore
+                    this[key] = obj[key];
+                }
+                return await Responder_1.default.render(filePath, this);
             };
             this._authenticated = req.isAuthenticated();
             this._query = req.query;

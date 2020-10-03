@@ -51,10 +51,12 @@ class Responder {
         };
         this.htmlResponder = async (req, res) => {
             const path = await this.validateThemePaths(this.getThemePaths(req, res), req);
+            res.locals.currentRenderPath = path;
             let html = await this.render(path, res.locals);
             if (res.locals.isExtended) {
                 const paths = this.genPaths(req, res.locals.extended.path).map(path => path_1.join(this.getFullThemeDir(req), path));
                 const path = await this.validateThemePaths(paths, req);
+                res.locals.currentRenderPath = path;
                 for (let key in res.locals.extended.data) {
                     res.locals[key] = res.locals.extended.data[key];
                 }

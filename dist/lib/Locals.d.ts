@@ -30,6 +30,7 @@ export declare class Locals implements KeyValueObject {
     private _extended;
     private _ejs_paths;
     private _ejs_pages;
+    currentRenderPath?: string;
     constructor(req: Request);
     env(envCheck?: string): boolean;
     setBody(body: object, overwrite?: boolean): ({} & object) | undefined;
@@ -37,6 +38,7 @@ export declare class Locals implements KeyValueObject {
     addPageLocations(locations: string[]): void;
     addPages(pages: string[]): void;
     extend: (path: string, data: any) => void;
+    include: (path: string, obj?: object | undefined) => Promise<string>;
     get extended(): boolean | {
         path: string;
         data: any;
