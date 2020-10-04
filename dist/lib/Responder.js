@@ -53,6 +53,8 @@ class Responder {
             const path = await this.validateThemePaths(this.getThemePaths(req, res), req);
             res.locals.currentRenderPath = path;
             let html = await this.render(path, res.locals);
+            if (res.headersSent)
+                return;
             if (res.locals.isExtended) {
                 const paths = this.genPaths(req, res.locals.extended.path).map(path => path_1.join(this.getFullThemeDir(req), path));
                 const path = await this.validateThemePaths(paths, req);
@@ -62,6 +64,8 @@ class Responder {
                 }
                 res.locals.content = html;
                 html = await this.render(path, res.locals);
+                if (res.headersSent)
+                    return;
             }
             res.send(html);
         };

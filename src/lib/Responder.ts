@@ -9,7 +9,7 @@ const {access, readFile, stat} = promises;
 
 class Responder {
     responseHandler = (req: Request, res: Response, next: NextFunction) => {
-        if(res.headersSent) {
+        if (res.headersSent) {
             return;
         }
 
@@ -39,6 +39,7 @@ class Responder {
 
         res.locals.currentRenderPath = path;
         let html = await this.render(path, res.locals);
+        if (res.headersSent) return;
         if (res.locals.isExtended) {
             const paths = this.genPaths(req, res.locals.extended.path).map(path => join(
                 this.getFullThemeDir(req),
@@ -51,6 +52,7 @@ class Responder {
             }
             res.locals.content = html;
             html = await this.render(path, res.locals)
+            if (res.headersSent) return;
         }
 
         res.send(html);

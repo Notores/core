@@ -9,7 +9,7 @@ const path_1 = require("path");
 const Responder_1 = __importDefault(require("./Responder"));
 let Locals = /** @class */ (() => {
     class Locals {
-        constructor(req) {
+        constructor(req, res) {
             this._contentType = 'json';
             this._body = {};
             this._payload = {};
@@ -30,12 +30,17 @@ let Locals = /** @class */ (() => {
                 this._extended = { path, data };
             };
             this.include = async (path, obj) => {
+                if (this._res.headersSent)
+                    return;
                 const filePath = path_1.join(this.currentRenderPath, '..', path);
                 for (let key in obj) {
                     // @ts-ignore
                     this[key] = obj[key];
                 }
                 return await Responder_1.default.render(filePath, this);
+            };
+            this.redirect = (path) => {
+                this._res.redirect(path);
             };
             this._authenticated = req.isAuthenticated();
             this._query = req.query;
@@ -44,6 +49,7 @@ let Locals = /** @class */ (() => {
             this._path = req.path;
             this._config = req.notores;
             this._type = req.accepts(['html', 'json']) || 'json';
+            this._res = res;
             Locals.properties
                 .map(obj => JSON.parse(JSON.stringify(obj)))
                 .forEach(obj => {
@@ -175,7 +181,7 @@ let Locals = /** @class */ (() => {
 })();
 exports.Locals = Locals;
 const defaultExport = (req, res, next) => {
-    res.locals = new Locals(req);
+    res.locals = new Locals(req, res);
     next();
 };
 module.exports = defaultExport;
