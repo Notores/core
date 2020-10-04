@@ -57,9 +57,10 @@ export class Locals implements KeyValueObject {
     private _extended: boolean | { path: string; data: any } = false;
     private _ejs_paths: string[] = [];
     private _ejs_pages: string[] = [];
+    private _res: Response;
     public currentRenderPath?: string;
 
-    constructor(req: Request) {
+    constructor(req: Request, res: Response) {
         this._authenticated = req.isAuthenticated();
         this._query = req.query;
         this._payload = req.body;
@@ -67,6 +68,7 @@ export class Locals implements KeyValueObject {
         this._path = req.path;
         this._config = req.notores;
         this._type = req.accepts(['html', 'json']) || 'json';
+        this._res = res;
 
         Locals.properties
             .map(obj => JSON.parse(JSON.stringify(obj)))
@@ -113,6 +115,8 @@ export class Locals implements KeyValueObject {
     };
 
     include = async (path: string, obj?: object) => {
+        if (this._res.headersSent) return;
+
         const filePath = join(this.currentRenderPath!, '..', path);
 
         for (let key in obj) {
@@ -121,6 +125,10 @@ export class Locals implements KeyValueObject {
         }
 
         return await Responder.render(filePath, this);
+    }
+
+    redirect = (path: string) => {
+        this._res.redirect(path)
     }
 
     get extended() {
@@ -220,7 +228,7 @@ export class Locals implements KeyValueObject {
 }
 
 const defaultExport: MiddlewareFunction = (req: Request, res: Response, next: NextFunction) => {
-    res.locals = new Locals(req);
+    res.locals = new Locals(req, res);
     next();
 };
 
