@@ -1,228 +1,165 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DeleteId = exports.PatchId = exports.PutId = exports.GetId = exports.Delete = exports.Patch = exports.Put = exports.Post = exports.Get = exports.Page = exports.Middleware = exports.Private = exports.Admin = exports.Authenticated = exports.Authorized = exports.Roles = exports.Restricted = void 0;
-const constants_1 = require("../constants");
-const logger_1 = require("../lib/logger");
+exports.DeleteId = exports.PatchId = exports.PutId = exports.GetId = exports.Delete = exports.Patch = exports.Put = exports.Post = exports.Get = exports.Page = exports.Pages = exports.PostMiddleware = exports.PreMiddleware = exports.Private = exports.Admin = exports.Authenticated = exports.Authorized = exports.Roles = exports.Restricted = void 0;
 const helpers_1 = require("./helpers");
-const logger = logger_1.loggerFactory(module);
-function defaultMethodSettings(obj) {
-    return {
-        path: typeof obj === 'string' ? obj : (obj === null || obj === void 0 ? void 0 : obj.PATH_ROUTE) || '',
-        pre: [],
-        post: [],
-        roles: [],
-        authenticated: false,
-        private: false,
-        pages: [],
-        redirect: false,
-    };
-}
-function getSettings(set) {
-    const base = {
-        ...defaultMethodSettings(set),
-    };
-    const { PATH_ROUTE, PRE_MIDDLEWARE, POST_MIDDLEWARE, PRIVATE, AUTH, ROLES, AUTH_REDIRECT } = set;
-    if (PATH_ROUTE) {
-        base.path = PATH_ROUTE;
+const symbols_1 = require("../symbols");
+const Notores_1 = require("../Notores");
+const ApiMetaData_1 = __importStar(require("../lib/ApiMetaData"));
+function getApiMetaData(target, propertyKey) {
+    const existingApiMetaData = Reflect.getOwnMetadata(symbols_1.apiMetadataKey, target[propertyKey]);
+    if (!existingApiMetaData) {
+        throw helpers_1.logErrorApiMetaDataDoesNotExist('Restricted', target, propertyKey);
     }
-    if (PRE_MIDDLEWARE) {
-        base.pre = PRE_MIDDLEWARE;
-    }
-    if (POST_MIDDLEWARE) {
-        base.post = POST_MIDDLEWARE;
-    }
-    if (PRIVATE) {
-        base.private = PRIVATE;
-    }
-    if (AUTH) {
-        base.authenticated = AUTH;
-    }
-    if (ROLES) {
-        base.roles = ROLES;
-    }
-    base.pages = [];
-    return base;
-}
-function normalizeSettingsInput(input) {
-    return {
-        authenticated: input.authenticated,
-        path: input.path,
-        post: Array.isArray(input.post) ? input.post : [input.post],
-        pre: Array.isArray(input.pre) ? input.pre : [input.pre],
-        private: input.private,
-        roles: Array.isArray(input.roles) ? input.roles : [input.roles],
-        pages: Array.isArray(input.pages) ? input.pages : [input.pages],
-        redirect: input.redirect,
-    };
-}
-function combineSettings(targetFunction, input) {
-    const settings = {
-        ...defaultMethodSettings(targetFunction),
-        ...getSettings(targetFunction),
-    };
-    const newSettings = normalizeSettingsInput(settings);
-    if (input.path) {
-        if (newSettings.path === '') {
-            newSettings.path = input.path;
-        }
-        else {
-            logger.warn(`Path is already set, skipping settings path. Old: ${newSettings.path}. New: ${settings.path}`);
-        }
-    }
-    if (input.pre) {
-        const mids = Array.isArray(input.pre) ? input.pre : [input.pre];
-        newSettings.pre.push(...mids);
-    }
-    if (input.post) {
-        const mids = Array.isArray(input.post) ? input.post : [input.post];
-        newSettings.post.push(...mids);
-    }
-    if (input.authenticated) {
-        newSettings.authenticated = input.authenticated;
-    }
-    if (input.pages) {
-        newSettings.pages.push(...input.pages);
-    }
-    return newSettings;
-}
-function applySettings(target, settings) {
-    target[constants_1.PATH_ROUTE] = settings.path || '/';
-    target[constants_1.PRE_MIDDLEWARE] = settings.pre;
-    target[constants_1.POST_MIDDLEWARE] = settings.post;
-    target[constants_1.ROLES] = settings.roles;
-    target[constants_1.AUTH] = settings.authenticated;
-    target[constants_1.PRIVATE] = settings.private;
-    target[constants_1.AUTH_REDIRECT] = settings.redirect;
+    return existingApiMetaData;
 }
 function generateHttpMethodDecorator(method, addId = false) {
-    return function Path(settings) {
+    return function Path(paths = ['/']) {
         return function (target, propertyKey) {
-            const targetFunc = target[propertyKey];
-            let set;
-            if (!settings) {
-                set = defaultMethodSettings();
-            }
-            else if (typeof settings === 'string') {
-                set = {
-                    ...defaultMethodSettings(settings),
-                };
-            }
-            else {
-                set = combineSettings(targetFunc, settings);
-            }
-            if (addId) {
-                if (set.path &&
-                    ((typeof set.path === 'string' && !['', '/'].includes(set.path))
-                        || (set.path instanceof RegExp))) {
-                    set.path = `${set.path}/:id`;
-                }
-                else {
-                    set.path = '/:id';
-                }
-            }
-            const normalized = normalizeSettingsInput(set);
-            applySettings(targetFunc, normalized);
-            targetFunc[constants_1.HTTP_METHOD] = (method).toLowerCase();
+            var _a;
+            const existingApiMetaData = (_a = Reflect.getOwnMetadata(symbols_1.apiMetadataKey, target[propertyKey])) !== null && _a !== void 0 ? _a : new ApiMetaData_1.default(method, target, propertyKey, addId);
+            existingApiMetaData.paths = Array.isArray(paths) ? paths : [paths];
+            Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
         };
     };
 }
-function Restricted(roles) {
+function Restricted(roles = ['admin']) {
     return (target, propertyKey) => {
+        const existingApiMetaData = getApiMetaData(target, propertyKey);
         helpers_1.logWarningIfNoAuthentication('Restricted', target, propertyKey);
-        target[propertyKey][constants_1.AUTH] = true;
-        target[propertyKey][constants_1.PRIVATE] = true;
-        if (Array.isArray(roles)) {
-            target[propertyKey][constants_1.ROLES] = roles;
-        }
-        else {
-            target[propertyKey][constants_1.ROLES] = [roles];
-        }
+        existingApiMetaData.setRestricted(roles);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
 exports.Restricted = Restricted;
 function Roles(roles) {
     return (target, propertyKey) => {
+        const existingApiMetaData = getApiMetaData(target, propertyKey);
         helpers_1.logWarningIfNoAuthentication('Roles', target, propertyKey);
-        target[propertyKey][constants_1.ROLES] = roles;
+        existingApiMetaData.roles = roles;
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
 exports.Roles = Roles;
 function Authorized(roles) {
     return (target, propertyKey) => {
-        helpers_1.logWarningIfNoAuthentication('Authorized', target, propertyKey);
-        target[propertyKey][constants_1.AUTH] = true;
-        target[propertyKey][constants_1.ROLES] = roles;
+        const existingApiMetaData = getApiMetaData(target, propertyKey);
+        existingApiMetaData.setAuthorized(roles);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
 exports.Authorized = Authorized;
 function Authenticated(settings = { redirect: false }) {
     return (target, propertyKey) => {
-        helpers_1.logWarningIfNoAuthentication('Authenticated', target, propertyKey);
-        target[propertyKey][constants_1.AUTH] = true;
-        target[propertyKey][constants_1.AUTH_REDIRECT] = settings.redirect;
+        const existingApiMetaData = getApiMetaData(target, propertyKey);
+        existingApiMetaData.setAuthenticated(settings);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
 exports.Authenticated = Authenticated;
 function Admin() {
     return (target, propertyKey) => {
-        helpers_1.logWarningIfNoAuthentication('Admin', target, propertyKey);
-        target[propertyKey][constants_1.AUTH] = true;
-        target[propertyKey][constants_1.PRIVATE] = true;
-        target[propertyKey][constants_1.ROLES] = ['admin'];
+        const existingApiMetaData = getApiMetaData(target, propertyKey);
+        existingApiMetaData.setAdmin();
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
 exports.Admin = Admin;
+/**
+ * @deprecated Since version 0.6.0 Will be deleted in version 1.0. Use @Restricted instead.
+ */
 function Private() {
     return (target, propertyKey) => {
-        target[propertyKey][constants_1.PRIVATE] = true;
+        Notores_1.SystemLogger.warn('Decorator @Private is deprecated, please use @Restricted instead');
+        const existingApiMetaData = getApiMetaData(target, propertyKey);
+        existingApiMetaData.setRestricted(['admin']);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
 exports.Private = Private;
-function Middleware(middlewares) {
+function PreMiddleware(middlewares) {
     return (target, propertyKey) => {
-        target[propertyKey][constants_1.PRE_MIDDLEWARE] = middlewares;
+        const existingApiMetaData = getApiMetaData(target, propertyKey);
+        existingApiMetaData.preMiddlewares = middlewares;
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
-exports.Middleware = Middleware;
-function Page(pages) {
+exports.PreMiddleware = PreMiddleware;
+function PostMiddleware(middlewares) {
     return (target, propertyKey) => {
-        target[propertyKey][constants_1.PAGE_GEN] = Array.isArray(pages) ? pages : [pages];
+        const existingApiMetaData = getApiMetaData(target, propertyKey);
+        existingApiMetaData.postMiddlewares = middlewares;
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
+    };
+}
+exports.PostMiddleware = PostMiddleware;
+function Pages(pages) {
+    return (target, propertyKey) => {
+        const existingApiMetaData = getApiMetaData(target, propertyKey);
+        existingApiMetaData.pages = pages;
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
+    };
+}
+exports.Pages = Pages;
+function Page(page) {
+    return (target, propertyKey) => {
+        const existingApiMetaData = getApiMetaData(target, propertyKey);
+        existingApiMetaData.pages = [page];
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
 exports.Page = Page;
-function Get(settings) {
-    return generateHttpMethodDecorator('get')(settings);
+function Get(path) {
+    return generateHttpMethodDecorator(ApiMetaData_1.HttpMethod.GET)(path);
 }
 exports.Get = Get;
-function Post(settings) {
-    return generateHttpMethodDecorator('post')(settings);
+function Post(path) {
+    return generateHttpMethodDecorator(ApiMetaData_1.HttpMethod.POST)(path);
 }
 exports.Post = Post;
-function Put(settings) {
-    return generateHttpMethodDecorator('put')(settings);
+function Put(path) {
+    return generateHttpMethodDecorator(ApiMetaData_1.HttpMethod.PUT)(path);
 }
 exports.Put = Put;
-function Patch(settings) {
-    return generateHttpMethodDecorator('patch')(settings);
+function Patch(path) {
+    return generateHttpMethodDecorator(ApiMetaData_1.HttpMethod.PATCH)(path);
 }
 exports.Patch = Patch;
-function Delete(settings) {
-    return generateHttpMethodDecorator('delete')(settings);
+function Delete(path) {
+    return generateHttpMethodDecorator(ApiMetaData_1.HttpMethod.DELETE)(path);
 }
 exports.Delete = Delete;
-function GetId(settings) {
-    return generateHttpMethodDecorator('get', true)(settings);
+function GetId(path) {
+    return generateHttpMethodDecorator(ApiMetaData_1.HttpMethod.GET, true)(path);
 }
 exports.GetId = GetId;
-function PutId(settings) {
-    return generateHttpMethodDecorator('put', true)(settings);
+function PutId(path) {
+    return generateHttpMethodDecorator(ApiMetaData_1.HttpMethod.PUT, true)(path);
 }
 exports.PutId = PutId;
-function PatchId(settings) {
-    return generateHttpMethodDecorator('patch', true)(settings);
+function PatchId(path) {
+    return generateHttpMethodDecorator(ApiMetaData_1.HttpMethod.PATCH, true)(path);
 }
 exports.PatchId = PatchId;
-function DeleteId(settings) {
-    return generateHttpMethodDecorator('delete', true)(settings);
+function DeleteId(path) {
+    return generateHttpMethodDecorator(ApiMetaData_1.HttpMethod.DELETE, true)(path);
 }
 exports.DeleteId = DeleteId;

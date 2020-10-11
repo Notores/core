@@ -10,7 +10,7 @@ export interface IServer {
         router: IRouter;
         postMiddleware: Application;
     };
-    private: {
+    restricted: {
         main: Application;
         preMiddleware: Application;
         router: IRouter;

@@ -16,7 +16,7 @@ const apps: IServer = {
         router: express(),
         postMiddleware: express(),
     },
-    private: {
+    restricted: {
         main: express(),
         preMiddleware: express(),
         router: express(),
@@ -100,6 +100,7 @@ export function createServer(): IServer {
             passport.authenticate('jwt', (err: Error, user: Notores.user, info: any) => {
                 if (user) {
                     return req.login(user, () => {
+
                         next();
                     });
                 }
@@ -118,10 +119,10 @@ export function createServer(): IServer {
     apps.public.main.use(apps.public.router);
     apps.public.main.use(apps.public.postMiddleware);
 
-    apps.main.use('/n-admin', apps.private.main);
+    apps.main.use('/n-admin', apps.restricted.main);
 
     if (mainConfig.authentication.enabled) {
-        apps.private.main.use((req: Request, res: Response, next: NextFunction) => {
+        apps.restricted.main.use((req: Request, res: Response, next: NextFunction) => {
             if (!req.isAuthenticated()) {
                 if (res.locals.type === 'html') {
                     // console.log('redirecting to login...');
@@ -141,21 +142,21 @@ export function createServer(): IServer {
             return next();
         });
     }
-    apps.private.main.use((req: Request, res: Response, next: NextFunction) => {
+    apps.restricted.main.use((req: Request, res: Response, next: NextFunction) => {
         if (res.locals.hasError) {
             return Responder.jsonResponder(req, res, next);
         }
         return next();
     });
 
-    apps.private.main.use(Responder.serverStatic);
+    apps.restricted.main.use(Responder.serverStatic);
 
 
-    apps.private.main.use(apps.private.preMiddleware);
-    apps.private.main.use(apps.private.router);
-    apps.private.main.use(apps.private.postMiddleware);
+    apps.restricted.main.use(apps.restricted.preMiddleware);
+    apps.restricted.main.use(apps.restricted.router);
+    apps.restricted.main.use(apps.restricted.postMiddleware);
 
-    apps.private.main.use(
+    apps.restricted.main.use(
         Responder.responseHandler
     );
 
