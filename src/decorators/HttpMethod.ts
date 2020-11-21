@@ -17,7 +17,10 @@ function getApiMetaData(target: any, propertyKey: string) {
 function generateHttpMethodDecorator(method: HttpMethod, addId = false) {
     return function Path(paths: ApiMethodPath = ['/']) {
         return function (target: any, propertyKey: string) {
-            const existingApiMetaData: ApiMetaData = Reflect.getOwnMetadata(apiMetadataKey, target[propertyKey]) ?? new ApiMetaData(method, target, propertyKey, addId);
+            const existingApiMetaData: ApiMetaData = Reflect.getOwnMetadata(
+                apiMetadataKey,
+                target[propertyKey]
+            ) ?? new ApiMetaData(method, target, propertyKey, addId);
 
             existingApiMetaData.paths = Array.isArray(paths) ? paths : [paths];
 

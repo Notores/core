@@ -5,11 +5,12 @@ import {NextFunction} from "express";
 import {IServer} from "../interfaces/IServer";
 import {join} from "path";
 import {apiMetadataKey, apiParameterMetadataKey, middlewareMetadataKey} from "../symbols";
-import {ParamTypes} from "./Api";
+import {generateRoutingParameters, ParamTypes, routingParameterDecorators} from "./Api";
 import {getConfig} from "../lib/config";
 import {SystemLogger} from "../Notores";
 import {HttpMethod} from "../lib/ApiMetaData";
 import {DATA_KEY, MODULE_PATH, ROOT_ROUTE} from "../constants";
+import MiddlewareMetaData from "../lib/MiddlewareMetaData";
 
 export const paths: { [key: string]: any } = [];
 
@@ -38,67 +39,73 @@ export function bindControllers(server: IServer, controllers: Function[]) {
         }
 
         // @Use // DO THIS
-        // const middlewareDeclarationMethods = getClassMethodsByDecoratedProperty(Clazz, middlewareMetadataKey);
-        // middlewareDeclarationMethods.forEach(middlewareDeclarationMethod => {
-        //     const {PATH_ROUTE, HTTP_METHOD, IS_PRE_MIDDLEWARE, IS_POST_MIDDLEWARE, PRIVATE, AUTH, ROLES} = instance[middlewareDeclarationMethod];
-        //
-        //     const wrapperMiddleware = (routingFunction: any) => {
-        //         return async (req: Request, res: Response, next: NextFunction) => {
-        //             if (useAuthentication && AUTH && !req.user) {
-        //                 return next();
-        //             }
-        //
-        //             const result = await routingFunction(req, res, next);
-        //
-        //             if (result) {
-        //                 let body;
-        //
-        //                 if (typeof result === 'object') {
-        //                     body = result;
-        //                 } else {
-        //                     body = {[dataKey]: result};
-        //                 }
-        //
-        //                 res.locals.setBody(body);
-        //             }
-        //             next();
-        //         }
-        //     };
-        //
-        //     const app = server[PRIVATE ? 'private' : 'public'];
-        //
-        //     const mids = [];
-        //     const midsObj = {
-        //         method: 'use',
-        //         ROUTE: PATH_ROUTE,
-        //         PATH: '',
-        //         WHERE: IS_PRE_MIDDLEWARE ? 'PRE ROUTES' : 'POST ROUTES',
-        //         PRIVATE,
-        //         AUTH,
-        //         ROLES,
-        //         function: middlewareDeclarationMethod,
-        //     }
-        //
-        //     if (midsObj.ROUTE && midsObj.ROUTE.toLowerCase() !== 'all') {
-        //         mids.push(midsObj.ROUTE)
-        //     } else {
-        //         midsObj.ROUTE = 'ALL';
-        //     }
-        //
-        //     mids.push(
-        //         wrapperMiddleware(
-        //             instance[middlewareDeclarationMethod].bind(instance)
-        //         )
-        //     );
-        //
-        //     paths.push(midsObj);
-        //
-        //     if (IS_PRE_MIDDLEWARE) {
-        //         app.preMiddleware.use(mids)
-        //     } else {
-        //         app.postMiddleware.use(mids);
-        //     }
-        // });
+        const middlewareDeclarationMethods = getClassMethodsByDecoratedProperty(Clazz, middlewareMetadataKey);
+        middlewareDeclarationMethods.forEach(middlewareDeclarationMethod => {
+            const middlewareMetaData: MiddlewareMetaData = Reflect.getOwnMetadata(middlewareMetadataKey, instance[middlewareDeclarationMethod]);
+
+            const wrapperMiddleware = (routingFunction: any) => {
+                return async (req: Request, res: Response, next: NextFunction) => {
+                    if (useAuthentication && middlewareMetaData.authenticated && !req.user) {
+                        return next();
+                    }
+
+                    const params = generateRoutingParameters(instance, middlewareDeclarationMethod, req, res, next);
+
+
+                    const result = await routingFunction(...params);
+
+                    if (result) {
+                        let body;
+
+                        if (typeof result === 'object') {
+                            body = result;
+                        } else {
+                            body = {[dataKey]: result};
+                        }
+
+                        res.locals.setBody(body);
+                    }
+                    next();
+                }
+            };
+
+            const app = server[middlewareMetaData.restricted ? 'restricted' : 'public'];
+
+            const mids = [];
+            const midsObj = {
+                method: 'use',
+                ROUTE: middlewareMetaData.paths,
+                PATH: '',
+                RESTRICTED: middlewareMetaData.restricted,
+                AUTH: middlewareMetaData.authenticated,
+                AUTH_REDIRECT: middlewareMetaData.unAuthRedirect,
+                ROLES: middlewareMetaData.roles,
+                function: middlewareDeclarationMethod,
+            }
+
+            if (middlewareMetaData.paths.length > 0) {
+                mids.push(middlewareMetaData.paths)
+            } else {
+                midsObj.ROUTE = ['ALL'];
+            }
+
+            mids.push(
+                wrapperMiddleware(
+                    instance[middlewareDeclarationMethod].bind(instance)
+                )
+            );
+
+            paths.push(midsObj);
+
+            if (middlewareMetaData.isPreMiddleware) {
+                // @ts-ignore
+                app.preMiddleware.use(...mids)
+            }
+            if (middlewareMetaData.isPostMiddleware) {
+                // @ts-ignore
+                app.postMiddleware.use(...mids);
+            }
+        });
 
         // @Path
         const pathRouteMethods = getClassMethodsByDecoratedProperty(Clazz, apiMetadataKey);
@@ -108,61 +115,7 @@ export function bindControllers(server: IServer, controllers: Function[]) {
 
             const wrapperMiddleware = (routingFunction: any) => {
                 return async (req: Request, res: Response, next: NextFunction) => {
-                    const params = [];
-                    let existingApiDecorators = Reflect.getOwnMetadata(apiParameterMetadataKey, instance[pathRouteMethod]) ?? [];
-                    existingApiDecorators.forEach((d: { type: string, index: number, data?: any }) => {
-                        let obj;
-                        switch (d.type) {
-                            case 'request':
-                                obj = req;
-                                break;
-                            case 'response':
-                                obj = res;
-                                break;
-                            case 'next':
-                                obj = next;
-                                break;
-                            case 'config':
-                                obj = req.notores;
-                                break;
-                            case 'body':
-                                obj = req.body;
-                                break;
-                            case 'user':
-                                obj = req.user;
-                                break;
-                            case 'query':
-                                obj = req.query;
-                                break;
-                            case 'params':
-                                obj = req.params;
-                                break;
-                            case 'param':
-                                let val: any = req.params[d.data!.key]
-                                if (d.data!.type) {
-                                    switch (d.data!.type) {
-                                        case ParamTypes.int:
-                                        case ParamTypes.integer:
-                                            val = parseInt(val);
-                                            break;
-                                        case ParamTypes.float:
-                                            val = parseFloat(val);
-                                            break;
-                                        case ParamTypes.bool:
-                                        case ParamTypes.boolean:
-                                            val = !!val;
-                                            break;
-                                    }
-                                }
-
-                                obj = val;
-                        }
-                        params[d.index] = obj;
-                    });
-
-                    params.push(req);
-                    params.push(res);
-                    params.push(next);
+                    const params = generateRoutingParameters(instance, pathRouteMethod, req, res, next);
 
                     const result = await routingFunction(...params);
                     let body;

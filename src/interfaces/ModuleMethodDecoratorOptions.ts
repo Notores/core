@@ -1,11 +1,6 @@
-export interface ModuleMiddlewareDecoratorOptionsPre {
-    path?: string | RegExp;
+export interface ModuleMiddlewareDecoratorOptions {
+    paths?: Array<string | RegExp> | string | RegExp;
     pre?: boolean;
-    authenticated?: boolean;
-}
-
-export interface ModuleMiddlewareDecoratorOptionsPost {
-    path?: string | RegExp;
     post?: boolean;
     authenticated?: boolean;
 }
