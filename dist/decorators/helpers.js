@@ -44,8 +44,11 @@ function bindControllers(server, controllers) {
                     const result = await routingFunction(...params);
                     if (result) {
                         let body;
-                        if (typeof result === 'object') {
+                        if (typeof result === 'object' && !Array.isArray(result) && result.hasOwnProperty(dataKey)) {
                             body = result;
+                        }
+                        else if (result instanceof Error) {
+                            body = { error: result.message };
                         }
                         else {
                             body = { [dataKey]: result };
@@ -67,7 +70,7 @@ function bindControllers(server, controllers) {
                 ROLES: middlewareMetaData.roles,
                 function: middlewareDeclarationMethod,
             };
-            if (middlewareMetaData.paths) {
+            if (middlewareMetaData.paths.length > 0) {
                 mids.push(middlewareMetaData.paths);
             }
             else {
@@ -77,11 +80,11 @@ function bindControllers(server, controllers) {
             exports.paths.push(midsObj);
             if (middlewareMetaData.isPreMiddleware) {
                 // @ts-ignore
-                app.preMiddleware.use(mids);
+                app.preMiddleware.use(...mids);
             }
             if (middlewareMetaData.isPostMiddleware) {
                 // @ts-ignore
-                app.postMiddleware.use(mids);
+                app.postMiddleware.use(...mids);
             }
         });
         // @Path

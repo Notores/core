@@ -51,14 +51,15 @@ export function bindControllers(server: IServer, controllers: Function[]) {
 
                     const params = generateRoutingParameters(instance, middlewareDeclarationMethod, req, res, next);
 
-
                     const result = await routingFunction(...params);
 
                     if (result) {
                         let body;
 
-                        if (typeof result === 'object') {
+                        if (typeof result === 'object' && !Array.isArray(result) && result.hasOwnProperty(dataKey)) {
                             body = result;
+                        } else if (result instanceof Error) {
+                            body = {error: result.message};
                         } else {
                             body = {[dataKey]: result};
                         }
