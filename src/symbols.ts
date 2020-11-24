@@ -10,4 +10,6 @@ export const connectionManagerMetadataKey = Symbol("dbConnectionManager");
 /*****************************
  ******* API KEYS *******
  *****************************/
+export const apiMetadataKey = Symbol('apiMetadataKey');
+export const middlewareMetadataKey = Symbol('middlewareMetadataKey');
 export const apiParameterMetadataKey = Symbol('apiParameterMetadataKey');

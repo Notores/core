@@ -19,7 +19,7 @@ const apps = {
         router: express_1.default(),
         postMiddleware: express_1.default(),
     },
-    private: {
+    restricted: {
         main: express_1.default(),
         preMiddleware: express_1.default(),
         router: express_1.default(),
@@ -101,9 +101,9 @@ function createServer() {
     apps.public.main.use(apps.public.preMiddleware);
     apps.public.main.use(apps.public.router);
     apps.public.main.use(apps.public.postMiddleware);
-    apps.main.use('/n-admin', apps.private.main);
+    apps.main.use('/n-admin', apps.restricted.main);
     if (mainConfig.authentication.enabled) {
-        apps.private.main.use((req, res, next) => {
+        apps.restricted.main.use((req, res, next) => {
             if (!req.isAuthenticated()) {
                 if (res.locals.type === 'html') {
                     // console.log('redirecting to login...');
@@ -126,17 +126,17 @@ function createServer() {
             return next();
         });
     }
-    apps.private.main.use((req, res, next) => {
+    apps.restricted.main.use((req, res, next) => {
         if (res.locals.hasError) {
             return Responder_1.default.jsonResponder(req, res, next);
         }
         return next();
     });
-    apps.private.main.use(Responder_1.default.serverStatic);
-    apps.private.main.use(apps.private.preMiddleware);
-    apps.private.main.use(apps.private.router);
-    apps.private.main.use(apps.private.postMiddleware);
-    apps.private.main.use(Responder_1.default.responseHandler);
+    apps.restricted.main.use(Responder_1.default.serverStatic);
+    apps.restricted.main.use(apps.restricted.preMiddleware);
+    apps.restricted.main.use(apps.restricted.router);
+    apps.restricted.main.use(apps.restricted.postMiddleware);
+    apps.restricted.main.use(Responder_1.default.responseHandler);
     apps.main.use(Responder_1.default.responseHandler);
     return apps;
 }
