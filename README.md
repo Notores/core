@@ -23,7 +23,7 @@ To use a database connection with built in Notores functionality, please check o
 
 ### Setup ###
 1. Please make sure to use the latest major version of [Node.js](https://github.com/nvm-sh/nvm#install--update-script).
-2. Run `npm i notores/core` (The Notores framework is still in development and in Beta, this package will be published on NPM soon)
+2. Run `npm i @notores/core` (The Notores framework is still in development and in Beta)
 3. Make sure you have `experimentalDecorators` and `emitDecoratorMetadata` set to `true` in your `tsconfig.json`
 
         "experimentalDecorators": true,
@@ -40,7 +40,8 @@ To use a database connection with built in Notores functionality, please check o
 6. In your `app.ts`, all you need to add is:
 
         async function setup() {
-            const app = await NotoresApplication.create();
+            const modules = [];
+            const app = await NotoresApplication.create(modules);
             app.start(/* Insert port */); // E.g. process.env.PORT || 3000
         }
 
