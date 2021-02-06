@@ -47,7 +47,18 @@ export class NotoresApplication {
 
     bindModules() {
         this.controllers = bindControllers(this.apps, this.modules.map(m => typeof m === 'function' ? m : m.default));
-        console.table(paths);
+        // @ts-ignore
+        const flatten = (input: any) => ([input].flatMap((e) => e)).join(', ');
+        const pathInfo = paths.map(
+          (r: any) => ({
+              ...r,
+              ROUTE: flatten(r.ROUTE),
+              PATH: flatten(r.PATH),
+              PAGES: flatten(r.PAGES),
+              ROLES: flatten(r.ROLES),
+          })
+        );
+        console.table(pathInfo);
     }
 
     addConnectionToRequest() {
