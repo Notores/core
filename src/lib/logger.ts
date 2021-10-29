@@ -31,6 +31,23 @@ export function loggerFactory(callingModule: Module): Logger {
     });
 }
 
+export function moduleLoggerFactory(moduleName: string): Logger {
+    return createLogger({
+        format: combine(
+            label({label: moduleName}),
+            timestamp(),
+            myFormat
+        ),
+        transports: [
+            new transports.Console(),
+            new transports.File({filename: 'logs/error.log', level: 'error'}),
+            new transports.File({filename: 'logs/info.log', level: 'info'}),
+            new transports.File({filename: 'logs/warn.log', level: 'warn'}),
+            new transports.File({filename: 'logs/notores.log'}),
+        ]
+    });
+}
+
 export function systemLoggerFactory(loggerLabel: string): Logger {
     return createLogger({
         format: combine(

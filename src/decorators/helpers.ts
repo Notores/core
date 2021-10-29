@@ -9,6 +9,7 @@ import {NotoresApplication, SystemLogger} from "../Notores";
 import ApiMetaData, {HttpMethod} from "../lib/ApiMetaData";
 import MiddlewareMetaData from "../lib/MiddlewareMetaData";
 import ModuleMetaData from "../lib/ModuleMetaData";
+import {moduleLoggerFactory} from "../lib/logger";
 
 export const paths: { [key: string]: any } = [];
 
@@ -244,8 +245,7 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                 postMiddlewares,
             );
         });
-
-        // app.use(rootRoute, router);
+        instance.logger = moduleLoggerFactory(moduleMetaData.targetName);
     }
     return ctrls;
 }
