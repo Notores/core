@@ -15,7 +15,7 @@ export function generateRoutingParameters(instance: any, pathRouteMethod: string
     existingApiDecorators.forEach((d: { type: string, index: number, data?: any }) => {
         const dec = routingParameterDecorators.find((dec) => dec.type === d.type)
 
-        if(!dec)
+        if (!dec)
             return;
 
         params[d.index] = dec.cb(d.data, req, res, next);
@@ -35,7 +35,7 @@ export function addRoutingParameterDecoratorToFunction(type: string, target: any
     Reflect.defineMetadata(apiParameterMetadataKey, existingApiDecorators, target[key]);
 }
 
-export const routingParameterDecorators: Array<{type: string, cb: Function}> = [];
+export const routingParameterDecorators: Array<{ type: string, cb: Function }> = [];
 
 export function registerRoutingParameterDecorator(type: string, cb: Function) {
     routingParameterDecorators.push({type, cb})

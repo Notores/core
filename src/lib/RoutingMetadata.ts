@@ -1,4 +1,3 @@
-
 export default class RoutingMetadata {
     protected _paths: Array<string | RegExp> = [];
     protected _roles?: string[];
@@ -18,8 +17,8 @@ export default class RoutingMetadata {
 
         for (let i = 0; i < userRoles.length; i++) {
             const r: string | { role: string } = userRoles[i];
-            const userRole: string =  (typeof r === 'string' ? r : r.role).toLowerCase();
-            if(this._roles.includes(userRole))
+            const userRole: string = (typeof r === 'string' ? r : r.role).toLowerCase();
+            if (this._roles.includes(userRole))
                 return true;
         }
         return false;
@@ -65,7 +64,6 @@ export default class RoutingMetadata {
         this._roles.push(...roles.map((r: string) => r.toLowerCase()));
     }
 
-    // @ts-ignore
     get paths(): Array<string | RegExp> {
         return this._paths;
     }

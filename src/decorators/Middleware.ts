@@ -1,6 +1,4 @@
-import {
-    ModuleMiddlewareDecoratorOptions
-} from "../interfaces/ModuleMethodDecoratorOptions";
+import {ModuleMiddlewareDecoratorOptions} from "../interfaces/ModuleMethodDecoratorOptions";
 import MiddlewareMetaData from "../lib/MiddlewareMetaData";
 import {middlewareMetadataKey} from "../symbols";
 

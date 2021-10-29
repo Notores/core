@@ -1,5 +1,5 @@
 import '../namespace/Notores'
-import {Request, Response, NextFunction} from "express";
+import {NextFunction, Request, Response} from "express";
 import {MiddlewareFunction} from '../namespace/Notores';
 import {join} from 'path';
 import Responder from './Responder';
@@ -57,6 +57,7 @@ export class Locals implements KeyValueObject {
     private _extended: boolean | { path: string; data: any } = false;
     private _ejs_paths: string[] = [];
     private _ejs_pages: string[] = [];
+    private _req: Request;
     private _res: Response;
     public currentRenderPath?: string;
 
@@ -68,6 +69,7 @@ export class Locals implements KeyValueObject {
         this._path = req.path;
         this._config = req.notores;
         this._type = req.accepts(['html', 'json']) || 'json';
+        this._req = req;
         this._res = res;
 
         Locals.properties
@@ -159,8 +161,8 @@ export class Locals implements KeyValueObject {
         return this._config;
     }
 
-    set type(value) {
-        this._type = value;
+    set type(value: string) {
+        this._type = this._req.accepts(value) || 'json'; // Default to JSON
     }
 
     get user() {

@@ -140,6 +140,23 @@ export function bindControllers(server: IServer, controllers: Function[]) {
             const preMiddlewares: Function[] = [];
             const postMiddlewares: Function[] = [];
 
+            if (apiMetaData.templateAccess) {
+                NotoresApplication.app.apps.preMiddleware.use((req: Request, res: Response, next: NextFunction) => {
+                    const params = generateRoutingParameters(instance, pathRouteMethod, req, res, next);
+                    res.locals[apiMetaData.propertyKey] = instance[pathRouteMethod].bind(instance, ...params);
+                    next();
+                });
+            }
+
+            if (apiMetaData.accepts) {
+                preMiddlewares.push(((req: Request, res: Response, next: NextFunction) => {
+                    if (req.accepts(apiMetaData.accepts) === false) {
+                        return next('route');
+                    }
+                    next();
+                }))
+            }
+
             if (useAuthentication && apiMetaData.authenticated) {
                 preMiddlewares.push(
                     (req: Request, res: Response, next: NextFunction) => {
@@ -169,6 +186,13 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                         }
                     }
                 )
+            }
+
+            if (apiMetaData.contentType) {
+                preMiddlewares.push((req: Request, res: Response, next: NextFunction) => {
+                    res.locals.type = apiMetaData.contentType;
+                    next();
+                });
             }
 
             function addMiddleware(value: string | string[] | Function | Function[], middlewareArray: Function[]) {
@@ -245,7 +269,7 @@ function getClassMethodsByDecoratedProperty(clazz, symbolKey: Symbol, foundMetho
         return getClassMethodsByDecoratedProperty(parentClazz, symbolKey, clazzMethods);
     }
     // returns an array of *unique* method names
-    return clazzMethods.filter((methodName, index, array) => array.indexOf(methodName) === index);
+    return clazzMethods.filter((methodName: string, index: number, array: string[]) => array.indexOf(methodName) === index);
 }
 
 /**

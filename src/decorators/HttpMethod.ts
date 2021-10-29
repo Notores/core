@@ -1,9 +1,11 @@
 import {logErrorApiMetaDataDoesNotExist, logWarningIfNoAuthentication} from "./helpers";
 import {apiMetadataKey} from "../symbols";
 import {SystemLogger} from "../Notores";
-import ApiMetaData, { HttpMethod } from "../lib/ApiMetaData";
+import ApiMetaData, {HttpMethod} from "../lib/ApiMetaData";
 
 declare type ApiMethodPath = Array<string | RegExp> | string | RegExp;
+
+declare type TargetReturnType = (target: any, propertyKey: any) => void;
 
 function getApiMetaData(target: any, propertyKey: string) {
     const existingApiMetaData: ApiMetaData = Reflect.getOwnMetadata(apiMetadataKey, target[propertyKey]);
@@ -29,7 +31,49 @@ function generateHttpMethodDecorator(method: HttpMethod, addId = false) {
     }
 }
 
-export function Restricted(roles: string[] | string = ['admin']) {
+export function TemplateAccess() {
+    return (target: any, propertyKey: any): void => {
+        const existingApiMetaData: ApiMetaData = getApiMetaData(target, propertyKey);
+
+        existingApiMetaData.templateAccess = true;
+
+        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+    };
+}
+
+export function ContentType(type: string): TargetReturnType {
+    return (target: any, propertyKey: string) => {
+        const existingApiMetaData: ApiMetaData = getApiMetaData(target, propertyKey);
+
+        existingApiMetaData.contentType = type;
+
+        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+    }
+}
+
+export function Accepts(type: string): TargetReturnType;
+export function Accepts(type: string[]): TargetReturnType;
+export function Accepts(...type: string[]): TargetReturnType;
+export function Accepts(): TargetReturnType {
+    const type: string[] = [...new Set(arguments)];
+
+    return (target: any, propertyKey: string) => {
+        const existingApiMetaData: ApiMetaData = getApiMetaData(target, propertyKey);
+
+        existingApiMetaData.accepts = Array.isArray(type) ? type : [type];
+
+        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+    }
+}
+
+export function Restricted(role: string): TargetReturnType;
+export function Restricted(roles: string[]): TargetReturnType;
+export function Restricted(): TargetReturnType {
+    const roles: string[] = [...new Set(arguments)];
+    if (roles.length === 0) {
+        roles.push('admin');
+    }
+
     return (target: any, propertyKey: string) => {
         const existingApiMetaData: ApiMetaData = getApiMetaData(target, propertyKey);
 
@@ -97,21 +141,31 @@ export function Private() {
     }
 }
 
-export function PreMiddleware(middlewares: Function | string | Array<Function | string>) {
+export function PreMiddleware(middleware: Function): TargetReturnType;
+export function PreMiddleware(functionName: string): TargetReturnType;
+export function PreMiddleware(middlewares: Array<Function>): TargetReturnType;
+export function PreMiddleware(functionNames: Array<string>): TargetReturnType;
+export function PreMiddleware(middlewaresAndFunctionNames: Array<Function | string>): TargetReturnType;
+export function PreMiddleware(input: any): TargetReturnType {
     return (target: any, propertyKey: string) => {
         const existingApiMetaData: ApiMetaData = getApiMetaData(target, propertyKey);
 
-        existingApiMetaData.preMiddlewares = middlewares;
+        existingApiMetaData.preMiddlewares = input;
 
         Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
     }
 }
 
-export function PostMiddleware(middlewares: Function | string | Array<Function | string>) {
+export function PostMiddleware(middleware: Function): TargetReturnType;
+export function PostMiddleware(functionName: string): TargetReturnType;
+export function PostMiddleware(middlewares: Array<Function>): TargetReturnType;
+export function PostMiddleware(functionNames: Array<string>): TargetReturnType;
+export function PostMiddleware(middlewaresAndFunctionNames: Array<Function | string>): TargetReturnType;
+export function PostMiddleware(input: any): TargetReturnType {
     return (target: any, propertyKey: string) => {
         const existingApiMetaData: ApiMetaData = getApiMetaData(target, propertyKey);
 
-        existingApiMetaData.postMiddlewares = middlewares;
+        existingApiMetaData.postMiddlewares = input;
 
         Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
     }
@@ -126,7 +180,6 @@ export function Pages(pages: string[]) {
         Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
     }
 }
-
 
 export function Page(page: string) {
     return (target: any, propertyKey: string) => {
