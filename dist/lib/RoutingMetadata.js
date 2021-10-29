@@ -53,7 +53,6 @@ class RoutingMetadata {
             roles.push('admin');
         this._roles.push(...roles.map((r) => r.toLowerCase()));
     }
-    // @ts-ignore
     get paths() {
         return this._paths;
     }

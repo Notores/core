@@ -9,7 +9,11 @@ export declare const connectionManagerMetadataKey: unique symbol;
 /*****************************
  ******* API KEYS *******
  *****************************/
+export declare const moduleMetadataKey: unique symbol;
 export declare const apiMetadataKey: unique symbol;
 export declare const middlewareMetadataKey: unique symbol;
 export declare const apiParameterMetadataKey: unique symbol;
+/*****************************
+ ******* LOCALS KEYS *******
+ *****************************/
 //# sourceMappingURL=symbols.d.ts.map

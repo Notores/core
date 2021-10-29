@@ -30,6 +30,7 @@ export declare class Locals implements KeyValueObject {
     private _extended;
     private _ejs_paths;
     private _ejs_pages;
+    private _req;
     private _res;
     currentRenderPath?: string;
     constructor(req: Request, res: Response);

@@ -49,6 +49,7 @@ let Locals = /** @class */ (() => {
             this._path = req.path;
             this._config = req.notores;
             this._type = req.accepts(['html', 'json']) || 'json';
+            this._req = req;
             this._res = res;
             Locals.properties
                 .map(obj => JSON.parse(JSON.stringify(obj)))
@@ -124,7 +125,7 @@ let Locals = /** @class */ (() => {
             return this._config;
         }
         set type(value) {
-            this._type = value;
+            this._type = this._req.accepts(value) || 'json'; // Default to JSON
         }
         get user() {
             return this._user;

@@ -16,12 +16,24 @@ var HttpMethod;
 class ApiMetaData extends RoutingMetadata_1.default {
     constructor(method, target, propertyKey, addId = false) {
         super(target, propertyKey);
+        this._templateAccess = false;
+        this._contentType = undefined;
+        this._accepts = ['json'];
         this._addId = false;
         this._method = HttpMethod.GET;
         this._preMiddleware = [];
         this._postMiddleware = [];
         this._method = method;
         this._addId = addId;
+    }
+    set templateAccess(value) {
+        this._templateAccess = value;
+    }
+    set contentType(value) {
+        this._contentType = value;
+    }
+    set accepts(value) {
+        this._accepts.push(...(Array.isArray(value) ? value : [value]));
     }
     set preMiddlewares(preMiddleware) {
         this._preMiddleware.push(...(Array.isArray(preMiddleware) ? preMiddleware : [preMiddleware]));
@@ -33,6 +45,15 @@ class ApiMetaData extends RoutingMetadata_1.default {
         if (!this._pages)
             this._pages = [];
         this._pages.push(...Array.isArray(pages) ? pages : [pages]);
+    }
+    get templateAccess() {
+        return this._templateAccess;
+    }
+    get contentType() {
+        return this._contentType;
+    }
+    get accepts() {
+        return this._accepts;
     }
     get method() {
         return this._method.toLowerCase();

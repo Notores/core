@@ -19,7 +19,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DeleteId = exports.PatchId = exports.PutId = exports.GetId = exports.Delete = exports.Patch = exports.Put = exports.Post = exports.Get = exports.Page = exports.Pages = exports.PostMiddleware = exports.PreMiddleware = exports.Private = exports.Admin = exports.Authenticated = exports.Authorized = exports.Roles = exports.Restricted = void 0;
+exports.DeleteId = exports.PatchId = exports.PutId = exports.GetId = exports.Delete = exports.Patch = exports.Put = exports.Post = exports.Get = exports.Page = exports.Pages = exports.PostMiddleware = exports.PreMiddleware = exports.Private = exports.Admin = exports.Authenticated = exports.Authorized = exports.Roles = exports.Restricted = exports.Accepts = exports.ContentType = exports.TemplateAccess = void 0;
 const helpers_1 = require("./helpers");
 const symbols_1 = require("../symbols");
 const Notores_1 = require("../Notores");
@@ -41,7 +41,36 @@ function generateHttpMethodDecorator(method, addId = false) {
         };
     };
 }
-function Restricted(roles = ['admin']) {
+function TemplateAccess() {
+    return (target, propertyKey) => {
+        const existingApiMetaData = getApiMetaData(target, propertyKey);
+        existingApiMetaData.templateAccess = true;
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
+    };
+}
+exports.TemplateAccess = TemplateAccess;
+function ContentType(type) {
+    return (target, propertyKey) => {
+        const existingApiMetaData = getApiMetaData(target, propertyKey);
+        existingApiMetaData.contentType = type;
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
+    };
+}
+exports.ContentType = ContentType;
+function Accepts() {
+    const type = [...new Set(arguments)];
+    return (target, propertyKey) => {
+        const existingApiMetaData = getApiMetaData(target, propertyKey);
+        existingApiMetaData.accepts = Array.isArray(type) ? type : [type];
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
+    };
+}
+exports.Accepts = Accepts;
+function Restricted() {
+    const roles = [...new Set(arguments)];
+    if (roles.length === 0) {
+        roles.push('admin');
+    }
     return (target, propertyKey) => {
         const existingApiMetaData = getApiMetaData(target, propertyKey);
         helpers_1.logWarningIfNoAuthentication('Restricted', target, propertyKey);
@@ -95,18 +124,18 @@ function Private() {
     };
 }
 exports.Private = Private;
-function PreMiddleware(middlewares) {
+function PreMiddleware(input) {
     return (target, propertyKey) => {
         const existingApiMetaData = getApiMetaData(target, propertyKey);
-        existingApiMetaData.preMiddlewares = middlewares;
+        existingApiMetaData.preMiddlewares = input;
         Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
 exports.PreMiddleware = PreMiddleware;
-function PostMiddleware(middlewares) {
+function PostMiddleware(input) {
     return (target, propertyKey) => {
         const existingApiMetaData = getApiMetaData(target, propertyKey);
-        existingApiMetaData.postMiddlewares = middlewares;
+        existingApiMetaData.postMiddlewares = input;
         Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }

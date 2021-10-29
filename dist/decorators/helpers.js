@@ -8,8 +8,22 @@ const Api_1 = require("./Api");
 const config_1 = require("../lib/config");
 const Notores_1 = require("../Notores");
 const ApiMetaData_1 = require("../lib/ApiMetaData");
-const constants_1 = require("../constants");
+const logger_1 = require("../lib/logger");
 exports.paths = [];
+function setBody(result, moduleMetaData) {
+    if (moduleMetaData.responseIsBody) {
+        return result;
+    }
+    else if (result instanceof Error) {
+        return { error: result.message };
+    }
+    else if (typeof result === 'object' && !Array.isArray(result) && result.hasOwnProperty(moduleMetaData.dataKey)) {
+        return result;
+    }
+    else {
+        return { [moduleMetaData.dataKey]: result };
+    }
+}
 /**
  * Attaches the router controllers to the main express application instance.
  * @param server - express application instance (result of call to `express()`)
@@ -21,18 +35,13 @@ function bindControllers(server, controllers) {
     for (const Clazz of controllers) {
         const instance = new Clazz();
         ctrls.push(instance);
-        // @ts-ignore
-        const rootRoute = Clazz[constants_1.ROOT_ROUTE];
-        // @ts-ignore
-        const dataKey = Clazz[constants_1.DATA_KEY];
-        // @ts-ignore
-        const ignoreDataKey = Clazz[constants_1.IGNORE_DATA_KEY];
-        // @ts-ignore
-        const modulePath = Clazz[constants_1.MODULE_PATH];
+        const moduleMetaData = Reflect.getOwnMetadata(symbols_1.moduleMetadataKey, Clazz);
+        /*
         if (!rootRoute || !rootRoute.startsWith('/')) {
             // TODO test it
             throw new Error('Class-level \'@Root\' decorator must be used with single string argument starting with forward slash (eg. \'/\' or \'/myRoot\')!');
         }
+        */
         // @Use // DO THIS
         const middlewareDeclarationMethods = getClassMethodsByDecoratedProperty(Clazz, symbols_1.middlewareMetadataKey);
         middlewareDeclarationMethods.forEach(middlewareDeclarationMethod => {
@@ -45,20 +54,7 @@ function bindControllers(server, controllers) {
                     const params = Api_1.generateRoutingParameters(instance, middlewareDeclarationMethod, req, res, next);
                     const result = await routingFunction(...params);
                     if (result) {
-                        let body;
-                        if (ignoreDataKey) {
-                            body = result;
-                        }
-                        else if (typeof result === 'object' && !Array.isArray(result) && result.hasOwnProperty(dataKey)) {
-                            body = result;
-                        }
-                        else if (result instanceof Error) {
-                            body = { error: result.message };
-                        }
-                        else {
-                            body = { [dataKey]: result };
-                        }
-                        res.locals.setBody(body);
+                        res.locals.setBody(setBody(result, moduleMetaData));
                     }
                     next();
                 };
@@ -100,29 +96,16 @@ function bindControllers(server, controllers) {
                 return async (req, res, next) => {
                     const params = Api_1.generateRoutingParameters(instance, pathRouteMethod, req, res, next);
                     const result = await routingFunction(...params);
-                    let body;
                     if (result === null || result === undefined) {
                         return next();
                     }
-                    if (ignoreDataKey) {
-                        body = result;
-                    }
-                    else if (typeof result === 'object' && !Array.isArray(result) && result.hasOwnProperty(dataKey)) {
-                        body = result;
-                    }
-                    else if (result instanceof Error) {
-                        body = { error: result.message };
-                    }
-                    else {
-                        body = { [dataKey]: result };
-                    }
                     if (apiMetaData.pages) {
                         res.locals.addPageLocations([
-                            path_1.join(modulePath, 'pages')
+                            path_1.join(moduleMetaData.filePath, 'pages')
                         ]);
                         res.locals.addPages(apiMetaData.pages);
                     }
-                    res.locals.setBody(body);
+                    res.locals.setBody(setBody(result, moduleMetaData));
                     next();
                 };
             };
@@ -130,6 +113,21 @@ function bindControllers(server, controllers) {
             const app = server[apiMetaData.restricted ? 'restricted' : 'public'].router;
             const preMiddlewares = [];
             const postMiddlewares = [];
+            if (apiMetaData.templateAccess) {
+                Notores_1.NotoresApplication.app.apps.preMiddleware.use((req, res, next) => {
+                    const params = Api_1.generateRoutingParameters(instance, pathRouteMethod, req, res, next);
+                    res.locals[apiMetaData.propertyKey] = instance[pathRouteMethod].bind(instance, ...params);
+                    next();
+                });
+            }
+            if (apiMetaData.accepts) {
+                preMiddlewares.push(((req, res, next) => {
+                    if (req.accepts(apiMetaData.accepts) === false) {
+                        return next('route');
+                    }
+                    next();
+                }));
+            }
             if (useAuthentication && apiMetaData.authenticated) {
                 preMiddlewares.push((req, res, next) => {
                     if (!req.isAuthenticated()) {
@@ -156,6 +154,12 @@ function bindControllers(server, controllers) {
                     }
                 });
             }
+            if (apiMetaData.contentType) {
+                preMiddlewares.push((req, res, next) => {
+                    res.locals.type = apiMetaData.contentType;
+                    next();
+                });
+            }
             function addMiddleware(value, middlewareArray) {
                 if (!value)
                     return;
@@ -174,7 +178,7 @@ function bindControllers(server, controllers) {
             }
             addMiddleware(apiMetaData.preMiddlewares, preMiddlewares);
             addMiddleware(apiMetaData.postMiddlewares, postMiddlewares);
-            const routes = rootRoute === '/' ? apiMetaData.paths : apiMetaData.paths.map((path) => `${rootRoute}${path}`);
+            const routes = moduleMetaData.prefix === '/' ? apiMetaData.paths : apiMetaData.paths.map((path) => `${moduleMetaData.prefix}${path}`);
             exports.paths.push({
                 method: apiMetaData.method,
                 ROUTE: apiMetaData.restricted ? routes.map((r) => `/n-admin${r}`) : routes,
@@ -191,7 +195,7 @@ function bindControllers(server, controllers) {
             // @ts-ignore
             app[apiMetaData.method](routes, preMiddlewares, wrapperMiddleware(instance[pathRouteMethod].bind(instance)), postMiddlewares);
         });
-        // app.use(rootRoute, router);
+        instance.logger = logger_1.moduleLoggerFactory(moduleMetaData.targetName);
     }
     return ctrls;
 }
