@@ -1,18 +1,28 @@
 import 'reflect-metadata';
-import {Request} from "express";
-import {Response} from "express";
-import {NextFunction} from "express";
+import {NextFunction, Request, Response} from "express";
 import {IServer} from "../interfaces/IServer";
 import {join} from "path";
-import {apiMetadataKey, apiParameterMetadataKey, middlewareMetadataKey} from "../symbols";
-import {generateRoutingParameters, ParamTypes, routingParameterDecorators} from "./Api";
+import {apiMetadataKey, middlewareMetadataKey, moduleMetadataKey} from "../symbols";
+import {generateRoutingParameters} from "./Api";
 import {getConfig} from "../lib/config";
-import {SystemLogger} from "../Notores";
-import {HttpMethod} from "../lib/ApiMetaData";
-import {DATA_KEY, IGNORE_DATA_KEY, MODULE_PATH, ROOT_ROUTE} from "../constants";
+import {NotoresApplication, SystemLogger} from "../Notores";
+import ApiMetaData, {HttpMethod} from "../lib/ApiMetaData";
 import MiddlewareMetaData from "../lib/MiddlewareMetaData";
+import ModuleMetaData from "../lib/ModuleMetaData";
 
 export const paths: { [key: string]: any } = [];
+
+function setBody(result: any, moduleMetaData: ModuleMetaData): any {
+    if (moduleMetaData.responseIsBody) {
+        return result;
+    } else if (result instanceof Error) {
+        return {error: result.message};
+    } else if (typeof result === 'object' && !Array.isArray(result) && result.hasOwnProperty(moduleMetaData.dataKey as string)) {
+        return result;
+    } else {
+        return {[moduleMetaData.dataKey as string]: result};
+    }
+}
 
 /**
  * Attaches the router controllers to the main express application instance.
@@ -25,20 +35,14 @@ export function bindControllers(server: IServer, controllers: Function[]) {
     for (const Clazz of controllers) {
         const instance = new (<any>Clazz)();
         ctrls.push(instance);
-        // @ts-ignore
-        const rootRoute: string = Clazz[ROOT_ROUTE];
 
-        // @ts-ignore
-        const dataKey: string = Clazz[DATA_KEY];
-        // @ts-ignore
-        const ignoreDataKey: string = Clazz[IGNORE_DATA_KEY];
-        // @ts-ignore
-        const modulePath: string = Clazz[MODULE_PATH];
-
+        const moduleMetaData: ModuleMetaData = Reflect.getOwnMetadata(moduleMetadataKey, Clazz);
+        /*
         if (!rootRoute || !rootRoute.startsWith('/')) {
             // TODO test it
             throw new Error('Class-level \'@Root\' decorator must be used with single string argument starting with forward slash (eg. \'/\' or \'/myRoot\')!');
         }
+        */
 
         // @Use // DO THIS
         const middlewareDeclarationMethods = getClassMethodsByDecoratedProperty(Clazz, middlewareMetadataKey);
@@ -56,19 +60,7 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                     const result = await routingFunction(...params);
 
                     if (result) {
-                        let body;
-
-                        if (ignoreDataKey) {
-                            body = result;
-                        } else if (typeof result === 'object' && !Array.isArray(result) && result.hasOwnProperty(dataKey)) {
-                            body = result;
-                        } else if (result instanceof Error) {
-                            body = {error: result.message};
-                        } else {
-                            body = {[dataKey]: result};
-                        }
-
-                        res.locals.setBody(body);
+                        res.locals.setBody(setBody(result, moduleMetaData));
                     }
                     next();
                 }
@@ -116,39 +108,28 @@ export function bindControllers(server: IServer, controllers: Function[]) {
         const pathRouteMethods = getClassMethodsByDecoratedProperty(Clazz, apiMetadataKey);
 
         pathRouteMethods.forEach(pathRouteMethod => {
-            const apiMetaData = Reflect.getOwnMetadata(apiMetadataKey, instance[pathRouteMethod]);
+            const apiMetaData: ApiMetaData = Reflect.getOwnMetadata(apiMetadataKey, instance[pathRouteMethod]);
 
             const wrapperMiddleware = (routingFunction: any) => {
                 return async (req: Request, res: Response, next: NextFunction) => {
                     const params = generateRoutingParameters(instance, pathRouteMethod, req, res, next);
 
                     const result = await routingFunction(...params);
-                    let body;
 
                     if (result === null || result === undefined) {
                         return next();
                     }
 
-                    if (ignoreDataKey) {
-                        body = result;
-                    } else if (typeof result === 'object' && !Array.isArray(result) && result.hasOwnProperty(dataKey)) {
-                        body = result;
-                    } else if (result instanceof Error) {
-                        body = {error: result.message};
-                    } else {
-                        body = {[dataKey]: result};
-                    }
-
                     if (apiMetaData.pages) {
                         res.locals.addPageLocations([
-                            join(modulePath, 'pages')
+                            join(moduleMetaData.filePath, 'pages')
                         ]);
                         res.locals.addPages(
                             apiMetaData.pages
                         );
                     }
 
-                    res.locals.setBody(body);
+                    res.locals.setBody(setBody(result, moduleMetaData));
                     next();
                 }
             };
@@ -213,11 +194,11 @@ export function bindControllers(server: IServer, controllers: Function[]) {
             addMiddleware(apiMetaData.preMiddlewares, preMiddlewares);
             addMiddleware(apiMetaData.postMiddlewares, postMiddlewares);
 
-            const routes = rootRoute === '/' ? apiMetaData.paths : apiMetaData.paths.map((path: string) => `${rootRoute}${path}`);
+            const routes = moduleMetaData.prefix === '/' ? apiMetaData.paths : apiMetaData.paths.map((path: string | RegExp) => `${moduleMetaData.prefix}${path}`);
 
             paths.push({
                 method: apiMetaData.method,
-                ROUTE: apiMetaData.restricted ? routes.map((r: string) => `/n-admin${r}`) : routes,
+                ROUTE: apiMetaData.restricted ? routes.map((r: string | RegExp) => `/n-admin${r}`) : routes,
                 PATH: apiMetaData.paths,
                 PRE_MIDDLE: preMiddlewares.length,
                 POST_MIDDLE: postMiddlewares.length,

@@ -1,55 +1,51 @@
 import 'reflect-metadata'
-import {DATA_KEY, IGNORE_DATA_KEY, MODULE_PATH, ROOT_ROUTE} from '../constants';
-import {NotoresApplication} from "../Notores";
-import {repositoryMetadataKey} from "../symbols";
-import { ModuleDecoratorOptions } from '../interfaces/ModuleDecoratorOptions';
+import {ModuleDecoratorOptions} from '../interfaces/ModuleDecoratorOptions';
+import ModuleMetaData from "../lib/ModuleMetaData";
+import {moduleMetadataKey} from "../symbols";
 
-export function Module(settings?: ModuleDecoratorOptions | string): ClassDecorator {
-    return function (target: any) {
+export function Module(none: undefined): ClassDecorator;
+export function Module(path?: string): ClassDecorator;
+export function Module(settings?: ModuleDecoratorOptions): ClassDecorator;
+export function Module(settings: any): ClassDecorator {
+    return function (target: Function) {
         const filePath = getFilePath();
-        Reflect.defineMetadata(repositoryMetadataKey, [], target);
+        const metadata: ModuleMetaData = new ModuleMetaData(target, filePath);
 
-        if (typeof settings === 'string') {
-            settings = {
-                prefix: settings,
-            }
-        }
-
-        let dataKey: string = target.name.indexOf('Module') > -1 ? target.name.replace('Module', '') : target.name;
-
-        if (!settings || typeof settings === 'string') {
-            settings = {
-                prefix: settings || '/',
-                dataKey,
-                table: [],
-                responseAsBody: false,
-            }
+        if (!settings) {
+            metadata.responseIsBody = false;
+        } else if (typeof settings === 'string') {
+            metadata.responseIsBody = false;
+            metadata.prefix = settings;
         } else {
-            settings = {
-                prefix: '/',
-                dataKey,
-                table: [],
-                ...settings,
-            };
-
+            if (settings.key) {
+                metadata.key = settings.key;
+            }
+            if (settings.prefix) {
+                metadata.prefix = settings.prefix;
+            }
+            if (settings.dataKey) {
+                metadata.dataKey = settings.dataKey;
+            }
+            if (settings.responseAsBody) {
+                metadata.responseIsBody = settings.responseAsBody;
+            }
             if (settings.entity) {
-                NotoresApplication.entities.push(settings.entity);
-                target.prototype.entity = settings.entity;
+                metadata.entity = settings.entity;
             }
-            if(settings.entities) {
-                NotoresApplication.entities.push(...settings.entities);
+            if (settings.entities) {
+                metadata.entities = settings.entities;
             }
-            if(settings.repository) {
-                NotoresApplication.repositories.push(settings.repository);
-                target.prototype.repoClazz = settings.repository;
-                target.prototype.repository = new settings.repository();
+            if (settings.repository) {
+                metadata.repository = settings.repository;
             }
         }
 
-        target[ROOT_ROUTE] = settings?.prefix?.startsWith('/') ? settings.prefix : `/${settings.prefix}`;
-        target[DATA_KEY] = settings.dataKey;
-        target[IGNORE_DATA_KEY] = settings.responseAsBody;
-        target[MODULE_PATH] = filePath;
+
+        Reflect.defineMetadata(moduleMetadataKey, metadata, target);
+        // target[ROOT_ROUTE] = settings?.prefix?.startsWith('/') ? settings.prefix : `/${settings.prefix}`;
+        // target[DATA_KEY] = settings.dataKey;
+        // target[IGNORE_DATA_KEY] = settings.responseAsBody;
+        // target[MODULE_PATH] = filePath;
     }
 }
 
