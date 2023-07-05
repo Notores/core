@@ -2,10 +2,9 @@ import {bindControllers, paths} from "./decorators/helpers";
 import {createServer} from "./server";
 import {IServer} from "./interfaces/IServer";
 import './namespace/Notores';
-import {loggerFactory, systemLoggerFactory} from './lib/logger';
-import {Request, Response, NextFunction} from "express";
+import {systemLoggerFactory} from './lib/logger';
+import {NextFunction, Request, Response} from "express";
 
-const logger = loggerFactory(module);
 export const SystemLogger = systemLoggerFactory('@notores/core');
 
 export class NotoresApplication {
@@ -67,9 +66,9 @@ export class NotoresApplication {
 
 
         this.apps.main.listen(port, () => {
-            logger.info(`Server started, listening on port:${port}`);
+            SystemLogger.info(`Server started, listening on port:${port}`);
             if (process.env.NODE_ENV === 'development')
-                logger.info(`Server can be reached on http://localhost:${port}`);
+                SystemLogger.info(`Server can be reached on http://localhost:${port}`);
         })
     }
 }

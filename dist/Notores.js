@@ -5,7 +5,6 @@ const helpers_1 = require("./decorators/helpers");
 const server_1 = require("./server");
 require("./namespace/Notores");
 const logger_1 = require("./lib/logger");
-const logger = logger_1.loggerFactory(module);
 exports.SystemLogger = logger_1.systemLoggerFactory('@notores/core');
 let NotoresApplication = /** @class */ (() => {
     class NotoresApplication {
@@ -51,9 +50,9 @@ let NotoresApplication = /** @class */ (() => {
             if (!port)
                 port = 3000;
             this.apps.main.listen(port, () => {
-                logger.info(`Server started, listening on port:${port}`);
+                exports.SystemLogger.info(`Server started, listening on port:${port}`);
                 if (process.env.NODE_ENV === 'development')
-                    logger.info(`Server can be reached on http://localhost:${port}`);
+                    exports.SystemLogger.info(`Server can be reached on http://localhost:${port}`);
             });
         }
     }

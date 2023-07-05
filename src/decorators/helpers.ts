@@ -1,19 +1,29 @@
 import 'reflect-metadata';
-import {DATA_KEY, HTTP_METHOD, MIDDLEWARE, MODULE_PATH, ROOT_ROUTE} from "../constants";
-import {Request} from "express";
-import {Response} from "express";
-import {NextFunction} from "express";
+import {NextFunction, Request, Response} from "express";
 import {IServer} from "../interfaces/IServer";
 import {join} from "path";
-import {apiParameterMetadataKey} from "../symbols";
-import {ParamTypes} from "./Api";
-import {loggerFactory} from "../lib/logger";
+import {apiMetadataKey, middlewareMetadataKey, moduleMetadataKey} from "../symbols";
+import {generateRoutingParameters} from "./Api";
 import {getConfig} from "../lib/config";
-import {SystemLogger} from "../Notores";
-
-const logger = loggerFactory(module);
+import {NotoresApplication, SystemLogger} from "../Notores";
+import ApiMetaData, {HttpMethod} from "../lib/ApiMetaData";
+import MiddlewareMetaData from "../lib/MiddlewareMetaData";
+import ModuleMetaData from "../lib/ModuleMetaData";
+import {moduleLoggerFactory} from "../lib/logger";
 
 export const paths: { [key: string]: any } = [];
+
+function setBody(result: any, moduleMetaData: ModuleMetaData): any {
+    if (moduleMetaData.responseIsBody) {
+        return result;
+    } else if (result instanceof Error) {
+        return {error: result.message};
+    } else if (typeof result === 'object' && !Array.isArray(result) && result.hasOwnProperty(moduleMetaData.dataKey as string)) {
+        return result;
+    } else {
+        return {[moduleMetaData.dataKey as string]: result};
+    }
+}
 
 /**
  * Attaches the router controllers to the main express application instance.
@@ -26,65 +36,55 @@ export function bindControllers(server: IServer, controllers: Function[]) {
     for (const Clazz of controllers) {
         const instance = new (<any>Clazz)();
         ctrls.push(instance);
-        // @ts-ignore
-        const rootRoute: string = Clazz[ROOT_ROUTE];
 
-        // @ts-ignore
-        const dataKey: string = Clazz[DATA_KEY];
-        // @ts-ignore
-        const modulePath: string = Clazz[MODULE_PATH];
-
+        const moduleMetaData: ModuleMetaData = Reflect.getOwnMetadata(moduleMetadataKey, Clazz);
+        /*
         if (!rootRoute || !rootRoute.startsWith('/')) {
             // TODO test it
             throw new Error('Class-level \'@Root\' decorator must be used with single string argument starting with forward slash (eg. \'/\' or \'/myRoot\')!');
         }
+        */
 
         // @Use // DO THIS
-        const middlewareDeclarationMethods = getClassMethodsByDecoratedProperty(Clazz, MIDDLEWARE);
+        const middlewareDeclarationMethods = getClassMethodsByDecoratedProperty(Clazz, middlewareMetadataKey);
         middlewareDeclarationMethods.forEach(middlewareDeclarationMethod => {
-            const {PATH_ROUTE, HTTP_METHOD, IS_PRE_MIDDLEWARE, IS_POST_MIDDLEWARE, PRIVATE, AUTH, ROLES} = instance[middlewareDeclarationMethod];
+            const middlewareMetaData: MiddlewareMetaData = Reflect.getOwnMetadata(middlewareMetadataKey, instance[middlewareDeclarationMethod]);
 
             const wrapperMiddleware = (routingFunction: any) => {
                 return async (req: Request, res: Response, next: NextFunction) => {
-                    if (useAuthentication && AUTH && !req.user) {
+                    if (useAuthentication && middlewareMetaData.authenticated && !req.user) {
                         return next();
                     }
 
-                    const result = await routingFunction(req, res, next);
+                    const params = generateRoutingParameters(instance, middlewareDeclarationMethod, req, res, next);
+
+                    const result = await routingFunction(...params);
 
                     if (result) {
-                        let body;
-
-                        if (typeof result === 'object') {
-                            body = result;
-                        } else {
-                            body = {[dataKey]: result};
-                        }
-
-                        res.locals.setBody(body);
+                        res.locals.setBody(setBody(result, moduleMetaData));
                     }
                     next();
                 }
             };
 
-            const app = server[PRIVATE ? 'private' : 'public'];
+            const app = server[middlewareMetaData.restricted ? 'restricted' : 'public'];
 
             const mids = [];
             const midsObj = {
                 method: 'use',
-                ROUTE: PATH_ROUTE,
+                ROUTE: middlewareMetaData.paths,
                 PATH: '',
-                WHERE: IS_PRE_MIDDLEWARE ? 'PRE ROUTES' : 'POST ROUTES',
-                PRIVATE,
-                AUTH,
-                ROLES,
+                RESTRICTED: middlewareMetaData.restricted,
+                AUTH: middlewareMetaData.authenticated,
+                AUTH_REDIRECT: middlewareMetaData.unAuthRedirect,
+                ROLES: middlewareMetaData.roles,
                 function: middlewareDeclarationMethod,
             }
 
-            if (midsObj.ROUTE && midsObj.ROUTE.toLowerCase() !== 'all') {
-                mids.push(midsObj.ROUTE)
+            if (middlewareMetaData.paths.length > 0) {
+                mids.push(middlewareMetaData.paths)
             } else {
-                midsObj.ROUTE = 'ALL';
+                midsObj.ROUTE = ['ALL'];
             }
 
             mids.push(
@@ -95,119 +95,76 @@ export function bindControllers(server: IServer, controllers: Function[]) {
 
             paths.push(midsObj);
 
-            if (IS_PRE_MIDDLEWARE) {
-                app.preMiddleware.use(mids)
-            } else {
-                app.postMiddleware.use(mids);
+            if (middlewareMetaData.isPreMiddleware) {
+                // @ts-ignore
+                app.preMiddleware.use(...mids)
+            }
+            if (middlewareMetaData.isPostMiddleware) {
+                // @ts-ignore
+                app.postMiddleware.use(...mids);
             }
         });
 
         // @Path
-        const pathRouteMethods = getClassMethodsByDecoratedProperty(Clazz, HTTP_METHOD);
+        const pathRouteMethods = getClassMethodsByDecoratedProperty(Clazz, apiMetadataKey);
+
         pathRouteMethods.forEach(pathRouteMethod => {
-            const {PATH_ROUTE, HTTP_METHOD, PRE_MIDDLEWARE, POST_MIDDLEWARE, PRIVATE, AUTH, AUTH_REDIRECT, ROLES, PAGE_GEN} = instance[pathRouteMethod];
+            const apiMetaData: ApiMetaData = Reflect.getOwnMetadata(apiMetadataKey, instance[pathRouteMethod]);
 
             const wrapperMiddleware = (routingFunction: any) => {
                 return async (req: Request, res: Response, next: NextFunction) => {
-                    const params = [];
-                    let existingApiDecorators = Reflect.getOwnMetadata(apiParameterMetadataKey, instance[pathRouteMethod]) ?? [];
-                    existingApiDecorators.forEach((d: { type: string, index: number, data?: any }) => {
-                        let obj;
-                        switch (d.type) {
-                            case 'request':
-                                obj = req;
-                                break;
-                            case 'response':
-                                obj = res;
-                                break;
-                            case 'next':
-                                obj = next;
-                                break;
-                            case 'config':
-                                obj = req.notores;
-                                break;
-                            case 'body':
-                                obj = req.body;
-                                break;
-                            case 'user':
-                                obj = req.user;
-                                break;
-                            case 'query':
-                                obj = req.query;
-                                break;
-                            case 'params':
-                                obj = req.params;
-                                break;
-                            case 'param':
-                                let val: any = req.params[d.data!.key]
-                                if (d.data!.type) {
-                                    switch (d.data!.type) {
-                                        case ParamTypes.int:
-                                        case ParamTypes.integer:
-                                            val = parseInt(val);
-                                            break;
-                                        case ParamTypes.float:
-                                            val = parseFloat(val);
-                                            break;
-                                        case ParamTypes.bool:
-                                        case ParamTypes.boolean:
-                                            val = !!val;
-                                            break;
-                                    }
-                                }
-
-                                obj = val;
-                        }
-                        params[d.index] = obj;
-                    });
-
-                    params.push(req);
-                    params.push(res);
-                    params.push(next);
+                    const params = generateRoutingParameters(instance, pathRouteMethod, req, res, next);
 
                     const result = await routingFunction(...params);
-                    let body;
 
                     if (result === null || result === undefined) {
                         return next();
                     }
 
-                    if (typeof result === 'object' && !Array.isArray(result) && result.hasOwnProperty(dataKey)) {
-                        body = result;
-                    } else if (result instanceof Error) {
-                        body = {error: result.message};
-                    } else {
-                        body = {[dataKey]: result};
-                    }
-
-                    if (PAGE_GEN) {
+                    if (apiMetaData.pages) {
                         res.locals.addPageLocations([
-                            join(modulePath, 'pages')
+                            join(moduleMetaData.filePath, 'pages')
                         ]);
                         res.locals.addPages(
-                            PAGE_GEN
+                            apiMetaData.pages
                         );
                     }
 
-                    res.locals.setBody(body);
+                    res.locals.setBody(setBody(result, moduleMetaData));
                     next();
                 }
             };
 
             // const {PATH_ROUTE, HTTP_METHOD, PRE_MIDDLEWARE, POST_MIDDLEWARE, PRIVATE, AUTH, AUTH_REDIRECT, ROLES, PAGE_GEN} = instance[pathRouteMethod];
-            const app = server[PRIVATE ? 'private' : 'public'].router;
-
+            const app = server[apiMetaData.restricted ? 'restricted' : 'public'].router;
 
             const preMiddlewares: Function[] = [];
             const postMiddlewares: Function[] = [];
 
-            if (useAuthentication && AUTH) {
+            if (apiMetaData.templateAccess) {
+                NotoresApplication.app.apps.preMiddleware.use((req: Request, res: Response, next: NextFunction) => {
+                    const params = generateRoutingParameters(instance, pathRouteMethod, req, res, next);
+                    res.locals[apiMetaData.propertyKey] = instance[pathRouteMethod].bind(instance, ...params);
+                    next();
+                });
+            }
+
+            if (apiMetaData.accepts) {
+                preMiddlewares.push(((req: Request, res: Response, next: NextFunction) => {
+                    if (req.accepts(apiMetaData.accepts) === false) {
+                        return next('route');
+                    }
+                    next();
+                }))
+            }
+
+            if (useAuthentication && apiMetaData.authenticated) {
                 preMiddlewares.push(
                     (req: Request, res: Response, next: NextFunction) => {
                         if (!req.isAuthenticated()) {
                             res.locals.error = {status: 403, message: 'Not Authenticated'};
 
-                            if (AUTH_REDIRECT) {
+                            if (apiMetaData.unAuthRedirect) {
                                 res.status(res.locals.error.status);
                                 if (res.locals.type === 'html') {
                                     res.redirect('/login');
@@ -219,25 +176,24 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                             return next('route');
                         }
 
-                        if (Array.isArray(ROLES) && ROLES.length > 0) {
+                        if (apiMetaData.roles.length > 0) {
                             if (req.user!.roles!.length === 0) {
                                 return next('route');
                             }
-                            for (let i = 0; i < ROLES.length; i++) {
-                                const role = ROLES[i];
-                                for (let i = 0; i < req!.user!.roles!.length; i++) {
-                                    const r = req.user!.roles[i];
-                                    const userRole = typeof r === 'string' ? r : r.role;
-                                    if (userRole[i].toLowerCase() === role.toLowerCase()) {
-                                        return next();
-                                    }
-                                }
-                            }
+
+                            return next(apiMetaData.isAuthorized(req.user!.roles!) ? '' : 'route');
                         } else {
                             return next();
                         }
                     }
                 )
+            }
+
+            if (apiMetaData.contentType) {
+                preMiddlewares.push((req: Request, res: Response, next: NextFunction) => {
+                    res.locals.type = apiMetaData.contentType;
+                    next();
+                });
             }
 
             function addMiddleware(value: string | string[] | Function | Function[], middlewareArray: Function[]) {
@@ -260,28 +216,28 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                 }
             }
 
-            addMiddleware(PRE_MIDDLEWARE, preMiddlewares);
-            addMiddleware(POST_MIDDLEWARE, postMiddlewares);
+            addMiddleware(apiMetaData.preMiddlewares, preMiddlewares);
+            addMiddleware(apiMetaData.postMiddlewares, postMiddlewares);
 
-            const route = rootRoute === '/' ? PATH_ROUTE : rootRoute + PATH_ROUTE;
+            const routes = moduleMetaData.prefix === '/' ? apiMetaData.paths : apiMetaData.paths.map((path: string | RegExp) => `${moduleMetaData.prefix}${path}`);
 
             paths.push({
-                method: HTTP_METHOD,
-                ROUTE: route,
-                PATH: PATH_ROUTE,
-                PRE_MIDLE: preMiddlewares.length,
+                method: apiMetaData.method,
+                ROUTE: apiMetaData.restricted ? routes.map((r: string | RegExp) => `/n-admin${r}`) : routes,
+                PATH: apiMetaData.paths,
+                PRE_MIDDLE: preMiddlewares.length,
                 POST_MIDDLE: postMiddlewares.length,
-                PAGE: PAGE_GEN,
-                PRIVATE,
-                AUTH,
-                AUTH_REDIRECT,
-                ROLES,
+                PAGES: apiMetaData.pages,
+                RESTRICTED: apiMetaData.restricted,
+                AUTH: apiMetaData.authenticated,
+                AUTH_REDIRECT: apiMetaData.unAuthRedirect,
+                ROLES: apiMetaData.roles,
                 function: pathRouteMethod,
             });
 
             // @ts-ignore
-            app[HTTP_METHOD](
-                route,
+            app[apiMetaData.method](
+                routes,
                 preMiddlewares,
                 wrapperMiddleware(
                     instance[pathRouteMethod].bind(instance)
@@ -289,8 +245,7 @@ export function bindControllers(server: IServer, controllers: Function[]) {
                 postMiddlewares,
             );
         });
-
-        // app.use(rootRoute, router);
+        instance.logger = moduleLoggerFactory(moduleMetaData.targetName);
     }
     return ctrls;
 }
@@ -298,23 +253,23 @@ export function bindControllers(server: IServer, controllers: Function[]) {
 /**
  * Recursively (taking into account super classes) find names of the methods, that were decorated with given property, in a class.
  * @param clazz - target class
- * @param decoratedPropertyName - name of the property known to be added by decorator, eg. 'ROOT_ROUTE'
+ * @param symbolKey - Symbol('string') which is used to define routes
  * @param foundMethodsNames - array of methods names found (useful when concatenating results of recursive search through superclasses)
  */
 // @ts-ignore
-function getClassMethodsByDecoratedProperty(clazz, decoratedPropertyName: string, foundMethodsNames: string[] = []): string[] {
+function getClassMethodsByDecoratedProperty(clazz, symbolKey: Symbol, foundMethodsNames: string[] = []): string[] {
     const clazzMethods = foundMethodsNames.concat(
         Object.getOwnPropertyNames(clazz.prototype)
             .filter(functionName => functionName !== 'constructor')
-            .filter(functionName => clazz.prototype[functionName][decoratedPropertyName] !== undefined)
+            .filter(functionName => Reflect.getOwnMetadata(symbolKey, clazz.prototype[functionName]) !== undefined)
     );
 
     const parentClazz = Object.getPrototypeOf(clazz);
     if (parentClazz.name !== '') {
-        return getClassMethodsByDecoratedProperty(parentClazz, decoratedPropertyName, clazzMethods);
+        return getClassMethodsByDecoratedProperty(parentClazz, symbolKey, clazzMethods);
     }
     // returns an array of *unique* method names
-    return clazzMethods.filter((methodName, index, array) => array.indexOf(methodName) === index);
+    return clazzMethods.filter((methodName: string, index: number, array: string[]) => array.indexOf(methodName) === index);
 }
 
 /**
@@ -326,5 +281,17 @@ function getClassMethodsByDecoratedProperty(clazz, decoratedPropertyName: string
 export function logWarningIfNoAuthentication(decorator: string, controller: string, func: string) {
     if (!getConfig().main.authentication.enabled) {
         SystemLogger.warn(`WARNING: Route Insecure. Use of @${decorator} in ${controller?.constructor?.name || 'Unknown'}.${func} while authentication is disabled in notores.json`);
+    }
+}
+
+/**
+ * Send a warning to console and logs if authentication is not enabled
+ * @param decorator - the name of the decorator
+ * @param controller - controller that contains the function that was decorated
+ * @param func - the function name that was decorated by an authentication related decorator
+ */
+export function logErrorApiMetaDataDoesNotExist(decorator: string, controller: string, func: string) {
+    if (!getConfig().main.authentication.enabled) {
+        SystemLogger.error(`ERROR: Route does not have an HTTP handle. Use of @${decorator} in ${controller?.constructor?.name || 'Unknown'}.${func}. Try using one of ${Object.keys(HttpMethod).map((method: string) => `@${method}`)}`);
     }
 }

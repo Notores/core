@@ -1,16 +1,29 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logWarningIfNoAuthentication = exports.bindControllers = exports.paths = void 0;
+exports.logErrorApiMetaDataDoesNotExist = exports.logWarningIfNoAuthentication = exports.bindControllers = exports.paths = void 0;
 require("reflect-metadata");
-const constants_1 = require("../constants");
 const path_1 = require("path");
 const symbols_1 = require("../symbols");
 const Api_1 = require("./Api");
-const logger_1 = require("../lib/logger");
 const config_1 = require("../lib/config");
 const Notores_1 = require("../Notores");
-const logger = logger_1.loggerFactory(module);
+const ApiMetaData_1 = require("../lib/ApiMetaData");
+const logger_1 = require("../lib/logger");
 exports.paths = [];
+function setBody(result, moduleMetaData) {
+    if (moduleMetaData.responseIsBody) {
+        return result;
+    }
+    else if (result instanceof Error) {
+        return { error: result.message };
+    }
+    else if (typeof result === 'object' && !Array.isArray(result) && result.hasOwnProperty(moduleMetaData.dataKey)) {
+        return result;
+    }
+    else {
+        return { [moduleMetaData.dataKey]: result };
+    }
+}
 /**
  * Attaches the router controllers to the main express application instance.
  * @param server - express application instance (result of call to `express()`)
@@ -22,159 +35,104 @@ function bindControllers(server, controllers) {
     for (const Clazz of controllers) {
         const instance = new Clazz();
         ctrls.push(instance);
-        // @ts-ignore
-        const rootRoute = Clazz[constants_1.ROOT_ROUTE];
-        // @ts-ignore
-        const dataKey = Clazz[constants_1.DATA_KEY];
-        // @ts-ignore
-        const modulePath = Clazz[constants_1.MODULE_PATH];
+        const moduleMetaData = Reflect.getOwnMetadata(symbols_1.moduleMetadataKey, Clazz);
+        /*
         if (!rootRoute || !rootRoute.startsWith('/')) {
             // TODO test it
             throw new Error('Class-level \'@Root\' decorator must be used with single string argument starting with forward slash (eg. \'/\' or \'/myRoot\')!');
         }
+        */
         // @Use // DO THIS
-        const middlewareDeclarationMethods = getClassMethodsByDecoratedProperty(Clazz, constants_1.MIDDLEWARE);
+        const middlewareDeclarationMethods = getClassMethodsByDecoratedProperty(Clazz, symbols_1.middlewareMetadataKey);
         middlewareDeclarationMethods.forEach(middlewareDeclarationMethod => {
-            const { PATH_ROUTE, HTTP_METHOD, IS_PRE_MIDDLEWARE, IS_POST_MIDDLEWARE, PRIVATE, AUTH, ROLES } = instance[middlewareDeclarationMethod];
+            const middlewareMetaData = Reflect.getOwnMetadata(symbols_1.middlewareMetadataKey, instance[middlewareDeclarationMethod]);
             const wrapperMiddleware = (routingFunction) => {
                 return async (req, res, next) => {
-                    if (useAuthentication && AUTH && !req.user) {
+                    if (useAuthentication && middlewareMetaData.authenticated && !req.user) {
                         return next();
                     }
-                    const result = await routingFunction(req, res, next);
+                    const params = Api_1.generateRoutingParameters(instance, middlewareDeclarationMethod, req, res, next);
+                    const result = await routingFunction(...params);
                     if (result) {
-                        let body;
-                        if (typeof result === 'object') {
-                            body = result;
-                        }
-                        else {
-                            body = { [dataKey]: result };
-                        }
-                        res.locals.setBody(body);
+                        res.locals.setBody(setBody(result, moduleMetaData));
                     }
                     next();
                 };
             };
-            const app = server[PRIVATE ? 'private' : 'public'];
+            const app = server[middlewareMetaData.restricted ? 'restricted' : 'public'];
             const mids = [];
             const midsObj = {
                 method: 'use',
-                ROUTE: PATH_ROUTE,
+                ROUTE: middlewareMetaData.paths,
                 PATH: '',
-                WHERE: IS_PRE_MIDDLEWARE ? 'PRE ROUTES' : 'POST ROUTES',
-                PRIVATE,
-                AUTH,
-                ROLES,
+                RESTRICTED: middlewareMetaData.restricted,
+                AUTH: middlewareMetaData.authenticated,
+                AUTH_REDIRECT: middlewareMetaData.unAuthRedirect,
+                ROLES: middlewareMetaData.roles,
                 function: middlewareDeclarationMethod,
             };
-            if (midsObj.ROUTE && midsObj.ROUTE.toLowerCase() !== 'all') {
-                mids.push(midsObj.ROUTE);
+            if (middlewareMetaData.paths.length > 0) {
+                mids.push(middlewareMetaData.paths);
             }
             else {
-                midsObj.ROUTE = 'ALL';
+                midsObj.ROUTE = ['ALL'];
             }
             mids.push(wrapperMiddleware(instance[middlewareDeclarationMethod].bind(instance)));
             exports.paths.push(midsObj);
-            if (IS_PRE_MIDDLEWARE) {
-                app.preMiddleware.use(mids);
+            if (middlewareMetaData.isPreMiddleware) {
+                // @ts-ignore
+                app.preMiddleware.use(...mids);
             }
-            else {
-                app.postMiddleware.use(mids);
+            if (middlewareMetaData.isPostMiddleware) {
+                // @ts-ignore
+                app.postMiddleware.use(...mids);
             }
         });
         // @Path
-        const pathRouteMethods = getClassMethodsByDecoratedProperty(Clazz, constants_1.HTTP_METHOD);
+        const pathRouteMethods = getClassMethodsByDecoratedProperty(Clazz, symbols_1.apiMetadataKey);
         pathRouteMethods.forEach(pathRouteMethod => {
-            const { PATH_ROUTE, HTTP_METHOD, PRE_MIDDLEWARE, POST_MIDDLEWARE, PRIVATE, AUTH, AUTH_REDIRECT, ROLES, PAGE_GEN } = instance[pathRouteMethod];
+            const apiMetaData = Reflect.getOwnMetadata(symbols_1.apiMetadataKey, instance[pathRouteMethod]);
             const wrapperMiddleware = (routingFunction) => {
                 return async (req, res, next) => {
-                    var _a;
-                    const params = [];
-                    let existingApiDecorators = (_a = Reflect.getOwnMetadata(symbols_1.apiParameterMetadataKey, instance[pathRouteMethod])) !== null && _a !== void 0 ? _a : [];
-                    existingApiDecorators.forEach((d) => {
-                        let obj;
-                        switch (d.type) {
-                            case 'request':
-                                obj = req;
-                                break;
-                            case 'response':
-                                obj = res;
-                                break;
-                            case 'next':
-                                obj = next;
-                                break;
-                            case 'config':
-                                obj = req.notores;
-                                break;
-                            case 'body':
-                                obj = req.body;
-                                break;
-                            case 'user':
-                                obj = req.user;
-                                break;
-                            case 'query':
-                                obj = req.query;
-                                break;
-                            case 'params':
-                                obj = req.params;
-                                break;
-                            case 'param':
-                                let val = req.params[d.data.key];
-                                if (d.data.type) {
-                                    switch (d.data.type) {
-                                        case Api_1.ParamTypes.int:
-                                        case Api_1.ParamTypes.integer:
-                                            val = parseInt(val);
-                                            break;
-                                        case Api_1.ParamTypes.float:
-                                            val = parseFloat(val);
-                                            break;
-                                        case Api_1.ParamTypes.bool:
-                                        case Api_1.ParamTypes.boolean:
-                                            val = !!val;
-                                            break;
-                                    }
-                                }
-                                obj = val;
-                        }
-                        params[d.index] = obj;
-                    });
-                    params.push(req);
-                    params.push(res);
-                    params.push(next);
+                    const params = Api_1.generateRoutingParameters(instance, pathRouteMethod, req, res, next);
                     const result = await routingFunction(...params);
-                    let body;
                     if (result === null || result === undefined) {
                         return next();
                     }
-                    if (typeof result === 'object' && !Array.isArray(result) && result.hasOwnProperty(dataKey)) {
-                        body = result;
-                    }
-                    else if (result instanceof Error) {
-                        body = { error: result.message };
-                    }
-                    else {
-                        body = { [dataKey]: result };
-                    }
-                    if (PAGE_GEN) {
+                    if (apiMetaData.pages) {
                         res.locals.addPageLocations([
-                            path_1.join(modulePath, 'pages')
+                            path_1.join(moduleMetaData.filePath, 'pages')
                         ]);
-                        res.locals.addPages(PAGE_GEN);
+                        res.locals.addPages(apiMetaData.pages);
                     }
-                    res.locals.setBody(body);
+                    res.locals.setBody(setBody(result, moduleMetaData));
                     next();
                 };
             };
             // const {PATH_ROUTE, HTTP_METHOD, PRE_MIDDLEWARE, POST_MIDDLEWARE, PRIVATE, AUTH, AUTH_REDIRECT, ROLES, PAGE_GEN} = instance[pathRouteMethod];
-            const app = server[PRIVATE ? 'private' : 'public'].router;
+            const app = server[apiMetaData.restricted ? 'restricted' : 'public'].router;
             const preMiddlewares = [];
             const postMiddlewares = [];
-            if (useAuthentication && AUTH) {
+            if (apiMetaData.templateAccess) {
+                Notores_1.NotoresApplication.app.apps.preMiddleware.use((req, res, next) => {
+                    const params = Api_1.generateRoutingParameters(instance, pathRouteMethod, req, res, next);
+                    res.locals[apiMetaData.propertyKey] = instance[pathRouteMethod].bind(instance, ...params);
+                    next();
+                });
+            }
+            if (apiMetaData.accepts) {
+                preMiddlewares.push(((req, res, next) => {
+                    if (req.accepts(apiMetaData.accepts) === false) {
+                        return next('route');
+                    }
+                    next();
+                }));
+            }
+            if (useAuthentication && apiMetaData.authenticated) {
                 preMiddlewares.push((req, res, next) => {
                     if (!req.isAuthenticated()) {
                         res.locals.error = { status: 403, message: 'Not Authenticated' };
-                        if (AUTH_REDIRECT) {
+                        if (apiMetaData.unAuthRedirect) {
                             res.status(res.locals.error.status);
                             if (res.locals.type === 'html') {
                                 res.redirect('/login');
@@ -185,24 +143,21 @@ function bindControllers(server, controllers) {
                         }
                         return next('route');
                     }
-                    if (Array.isArray(ROLES) && ROLES.length > 0) {
+                    if (apiMetaData.roles.length > 0) {
                         if (req.user.roles.length === 0) {
                             return next('route');
                         }
-                        for (let i = 0; i < ROLES.length; i++) {
-                            const role = ROLES[i];
-                            for (let i = 0; i < req.user.roles.length; i++) {
-                                const r = req.user.roles[i];
-                                const userRole = typeof r === 'string' ? r : r.role;
-                                if (userRole[i].toLowerCase() === role.toLowerCase()) {
-                                    return next();
-                                }
-                            }
-                        }
+                        return next(apiMetaData.isAuthorized(req.user.roles) ? '' : 'route');
                     }
                     else {
                         return next();
                     }
+                });
+            }
+            if (apiMetaData.contentType) {
+                preMiddlewares.push((req, res, next) => {
+                    res.locals.type = apiMetaData.contentType;
+                    next();
                 });
             }
             function addMiddleware(value, middlewareArray) {
@@ -221,26 +176,26 @@ function bindControllers(server, controllers) {
                         value);
                 }
             }
-            addMiddleware(PRE_MIDDLEWARE, preMiddlewares);
-            addMiddleware(POST_MIDDLEWARE, postMiddlewares);
-            const route = rootRoute === '/' ? PATH_ROUTE : rootRoute + PATH_ROUTE;
+            addMiddleware(apiMetaData.preMiddlewares, preMiddlewares);
+            addMiddleware(apiMetaData.postMiddlewares, postMiddlewares);
+            const routes = moduleMetaData.prefix === '/' ? apiMetaData.paths : apiMetaData.paths.map((path) => `${moduleMetaData.prefix}${path}`);
             exports.paths.push({
-                method: HTTP_METHOD,
-                ROUTE: route,
-                PATH: PATH_ROUTE,
-                PRE_MIDLE: preMiddlewares.length,
+                method: apiMetaData.method,
+                ROUTE: apiMetaData.restricted ? routes.map((r) => `/n-admin${r}`) : routes,
+                PATH: apiMetaData.paths,
+                PRE_MIDDLE: preMiddlewares.length,
                 POST_MIDDLE: postMiddlewares.length,
-                PAGE: PAGE_GEN,
-                PRIVATE,
-                AUTH,
-                AUTH_REDIRECT,
-                ROLES,
+                PAGES: apiMetaData.pages,
+                RESTRICTED: apiMetaData.restricted,
+                AUTH: apiMetaData.authenticated,
+                AUTH_REDIRECT: apiMetaData.unAuthRedirect,
+                ROLES: apiMetaData.roles,
                 function: pathRouteMethod,
             });
             // @ts-ignore
-            app[HTTP_METHOD](route, preMiddlewares, wrapperMiddleware(instance[pathRouteMethod].bind(instance)), postMiddlewares);
+            app[apiMetaData.method](routes, preMiddlewares, wrapperMiddleware(instance[pathRouteMethod].bind(instance)), postMiddlewares);
         });
-        // app.use(rootRoute, router);
+        instance.logger = logger_1.moduleLoggerFactory(moduleMetaData.targetName);
     }
     return ctrls;
 }
@@ -248,17 +203,17 @@ exports.bindControllers = bindControllers;
 /**
  * Recursively (taking into account super classes) find names of the methods, that were decorated with given property, in a class.
  * @param clazz - target class
- * @param decoratedPropertyName - name of the property known to be added by decorator, eg. 'ROOT_ROUTE'
+ * @param symbolKey - Symbol('string') which is used to define routes
  * @param foundMethodsNames - array of methods names found (useful when concatenating results of recursive search through superclasses)
  */
 // @ts-ignore
-function getClassMethodsByDecoratedProperty(clazz, decoratedPropertyName, foundMethodsNames = []) {
+function getClassMethodsByDecoratedProperty(clazz, symbolKey, foundMethodsNames = []) {
     const clazzMethods = foundMethodsNames.concat(Object.getOwnPropertyNames(clazz.prototype)
         .filter(functionName => functionName !== 'constructor')
-        .filter(functionName => clazz.prototype[functionName][decoratedPropertyName] !== undefined));
+        .filter(functionName => Reflect.getOwnMetadata(symbolKey, clazz.prototype[functionName]) !== undefined));
     const parentClazz = Object.getPrototypeOf(clazz);
     if (parentClazz.name !== '') {
-        return getClassMethodsByDecoratedProperty(parentClazz, decoratedPropertyName, clazzMethods);
+        return getClassMethodsByDecoratedProperty(parentClazz, symbolKey, clazzMethods);
     }
     // returns an array of *unique* method names
     return clazzMethods.filter((methodName, index, array) => array.indexOf(methodName) === index);
@@ -276,3 +231,16 @@ function logWarningIfNoAuthentication(decorator, controller, func) {
     }
 }
 exports.logWarningIfNoAuthentication = logWarningIfNoAuthentication;
+/**
+ * Send a warning to console and logs if authentication is not enabled
+ * @param decorator - the name of the decorator
+ * @param controller - controller that contains the function that was decorated
+ * @param func - the function name that was decorated by an authentication related decorator
+ */
+function logErrorApiMetaDataDoesNotExist(decorator, controller, func) {
+    var _a;
+    if (!config_1.getConfig().main.authentication.enabled) {
+        Notores_1.SystemLogger.error(`ERROR: Route does not have an HTTP handle. Use of @${decorator} in ${((_a = controller === null || controller === void 0 ? void 0 : controller.constructor) === null || _a === void 0 ? void 0 : _a.name) || 'Unknown'}.${func}. Try using one of ${Object.keys(ApiMetaData_1.HttpMethod).map((method) => `@${method}`)}`);
+    }
+}
+exports.logErrorApiMetaDataDoesNotExist = logErrorApiMetaDataDoesNotExist;

@@ -1,7 +1,8 @@
 export interface ModuleDecoratorOptions {
+    key?: string;
     prefix?: string;
     dataKey?: string;
-    table?: string[];
+    responseAsBody?: boolean;
     entity?: any;
     entities?: any[];
     repository?: any;

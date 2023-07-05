@@ -9,7 +9,7 @@ const {access, readFile, stat} = promises;
 
 class Responder {
     responseHandler = (req: Request, res: Response, next: NextFunction) => {
-        if(res.headersSent) {
+        if (res.headersSent) {
             return;
         }
 
@@ -37,24 +37,28 @@ class Responder {
     htmlResponder = async (req: Request, res: Response) => {
         const path = await this.validateThemePaths(this.getThemePaths(req, res), req);
 
+        res.locals.currentRenderPath = path;
         let html = await this.render(path, res.locals);
+        if (res.headersSent) return;
         if (res.locals.isExtended) {
             const paths = this.genPaths(req, res.locals.extended.path).map(path => join(
                 this.getFullThemeDir(req),
                 path,
             ));
             const path = await this.validateThemePaths(paths, req);
+            res.locals.currentRenderPath = path;
             for (let key in res.locals.extended.data) {
                 res.locals[key] = res.locals.extended.data[key]
             }
             res.locals.content = html;
             html = await this.render(path, res.locals)
+            if (res.headersSent) return;
         }
 
         res.send(html);
     };
 
-    private render = async (path: string, data: Locals) => {
+    public render = async (path: string, data: Locals) => {
         const template = await readFile(path, 'utf-8');
         return ejs.render(template, data, {cache: false, filename: path, async: true});
     };
@@ -109,7 +113,6 @@ class Responder {
         });
         return paths;
     }
-
 
     private genPaths(req: Request, path: string): string[] {
         const paths = [];

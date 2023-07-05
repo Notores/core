@@ -1,5 +1,5 @@
 import '../namespace/Notores';
-import { Request } from "express";
+import { Request, Response } from "express";
 interface KeyValueObject {
     [key: string]: any;
 }
@@ -30,13 +30,18 @@ export declare class Locals implements KeyValueObject {
     private _extended;
     private _ejs_paths;
     private _ejs_pages;
-    constructor(req: Request);
+    private _req;
+    private _res;
+    currentRenderPath?: string;
+    constructor(req: Request, res: Response);
     env(envCheck?: string): boolean;
     setBody(body: object, overwrite?: boolean): ({} & object) | undefined;
     bodyIsSet(body?: object | null): boolean;
     addPageLocations(locations: string[]): void;
     addPages(pages: string[]): void;
     extend: (path: string, data: any) => void;
+    include: (path: string, obj?: object | undefined) => Promise<string | undefined>;
+    redirect: (path: string) => void;
     get extended(): boolean | {
         path: string;
         data: any;

@@ -1,6 +1,9 @@
 import '../namespace/Notores'
-import {Request, Response, NextFunction} from "express";
-import { MiddlewareFunction } from '../namespace/Notores';
+import {NextFunction, Request, Response} from "express";
+import {MiddlewareFunction} from '../namespace/Notores';
+import {join} from 'path';
+import Responder from './Responder';
+
 interface KeyValueObject {
     [key: string]: any;
 }
@@ -54,9 +57,11 @@ export class Locals implements KeyValueObject {
     private _extended: boolean | { path: string; data: any } = false;
     private _ejs_paths: string[] = [];
     private _ejs_pages: string[] = [];
+    private _req: Request;
+    private _res: Response;
+    public currentRenderPath?: string;
 
-
-    constructor(req: Request) {
+    constructor(req: Request, res: Response) {
         this._authenticated = req.isAuthenticated();
         this._query = req.query;
         this._payload = req.body;
@@ -64,6 +69,8 @@ export class Locals implements KeyValueObject {
         this._path = req.path;
         this._config = req.notores;
         this._type = req.accepts(['html', 'json']) || 'json';
+        this._req = req;
+        this._res = res;
 
         Locals.properties
             .map(obj => JSON.parse(JSON.stringify(obj)))
@@ -76,7 +83,7 @@ export class Locals implements KeyValueObject {
     }
 
     env(envCheck = 'production') {
-        return this.NODE_ENV === envCheck
+        return this.NODE_ENV === envCheck;
     }
 
     setBody(body: object, overwrite = false) {
@@ -109,6 +116,23 @@ export class Locals implements KeyValueObject {
         this._extended = {path, data};
     };
 
+    include = async (path: string, obj?: object) => {
+        if (this._res.headersSent) return;
+
+        const filePath = join(this.currentRenderPath!, '..', path);
+
+        for (let key in obj) {
+            // @ts-ignore
+            this[key] = obj[key];
+        }
+
+        return await Responder.render(filePath, this);
+    }
+
+    redirect = (path: string) => {
+        this._res.redirect(path)
+    }
+
     get extended() {
         return this._extended;
     }
@@ -137,8 +161,8 @@ export class Locals implements KeyValueObject {
         return this._config;
     }
 
-    set type(value) {
-        this._type = value;
+    set type(value: string) {
+        this._type = this._req.accepts(value) || 'json'; // Default to JSON
     }
 
     get user() {
@@ -206,10 +230,9 @@ export class Locals implements KeyValueObject {
 }
 
 const defaultExport: MiddlewareFunction = (req: Request, res: Response, next: NextFunction) => {
-    res.locals = new Locals(req);
+    res.locals = new Locals(req, res);
     next();
 };
-
 
 module.exports = defaultExport;
 

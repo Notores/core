@@ -2,7 +2,7 @@ import '../namespace/Notores';
 import {readFileSync, writeFileSync} from 'fs';
 import {loggerFactory} from "./logger";
 import {join} from 'path';
-import { IThemeConfig } from '../namespace/Notores';
+import {IThemeConfig} from '../namespace/Notores';
 
 const assign = require('assign-deep');
 
