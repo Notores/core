@@ -1,26 +1,26 @@
 import RoutingMetadata from "./RoutingMetadata";
 
-export default class MiddlewareMetaData extends RoutingMetadata{
-    private _isPreMiddleware: boolean = true;
-    private _isPostMiddleware: boolean = false;
+export class MiddlewareMetaData extends RoutingMetadata {
+    #isPreMiddleware: boolean = true;
+    #isPostMiddleware: boolean = false;
 
     constructor(target: any, propertyKey: string) {
         super(target, propertyKey)
     }
 
     set isPreMiddleware(isPre: boolean) {
-        this._isPreMiddleware = isPre
+        this.#isPreMiddleware = isPre
     }
 
     get isPreMiddleware(): boolean {
-        return this._isPreMiddleware;
+        return this.#isPreMiddleware;
     }
 
     set isPostMiddleware(isPost: boolean) {
-        this._isPostMiddleware = isPost
+        this.#isPostMiddleware = isPost
     }
 
     get isPostMiddleware(): boolean {
-        return this._isPostMiddleware;
+        return this.#isPostMiddleware;
     }
 }

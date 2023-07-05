@@ -1,105 +1,119 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const Notores_1 = require("../Notores");
-class ModuleMetaData {
+import { NotoresApplication } from "../Notores";
+export class ModuleMetaData {
+    // Defaults
+    #prefix = '/';
+    #responseIsBody = false;
+    #filePath = '';
+    #dataKey = false;
+    #entities = [];
+    // Constructor
+    #target;
+    #targetName;
+    #key;
+    #swaggerTag;
+    // Optionals
+    #entity;
+    #repository;
     constructor(target, filePath) {
-        // Defaults
-        this._prefix = '/';
-        this._responseIsBody = false;
-        this._filePath = '';
-        this._dataKey = false;
-        this._entities = [];
-        this.target = target;
-        this.filePath = filePath;
-        this.targetName = target.name;
-        this.key = this.targetName;
+        this.#target = target;
+        this.#filePath = filePath;
+        this.#targetName = target.name;
+        this.#key = this.targetName;
+        this.#swaggerTag = {
+            name: target.name.replace(/(Module|module)/, ''),
+        };
     }
     setup() {
-        if (this.entity || this.entities) {
+        if (this.#entity || this.#entities) {
             const arr = [];
-            if (this.entity) {
-                arr.push(this.entity);
-                this.target.prototype.entity = this.entity;
+            if (this.#entity) {
+                arr.push(this.#entity);
+                this.#target.prototype.entity = this.#entity;
             }
-            if (this.entities) {
-                arr.push(...this.entities);
-                this.target.prototype.entities = this.entities;
+            if (this.#entities) {
+                arr.push(...this.#entities);
+                this.#target.prototype.entities = this.#entities;
             }
             const filtered = [...new Set(arr)];
-            Notores_1.NotoresApplication.entities.push(filtered);
+            NotoresApplication.entities.push(filtered);
         }
         if (this.repository) {
-            Notores_1.NotoresApplication.repositories.push(this.repository);
-            this.target.prototype.repoClazz = this.repository;
-            this.target.prototype.repository = new this.repository();
+            NotoresApplication.repositories.push(this.#repository);
+            this.#target.prototype.repoClazz = this.#repository;
+            this.#target.prototype.repository = new this.#repository();
         }
     }
     generateDataKeyName() {
-        return this.target.name.indexOf('Module') > -1 ? this.target.name.replace('Module', '') : this.target.name;
+        return this.#target.name.indexOf('Module') > -1 ? this.#target.name.replace('Module', '') : this.#target.name;
     }
     get key() {
-        return this._key;
+        return this.#key;
     }
     set key(value) {
-        this._key = value;
+        this.#key = value;
     }
     get prefix() {
-        return this._prefix;
+        return this.#prefix;
     }
     set prefix(value) {
-        this._prefix = value.startsWith('/') ? value : `/${value}`;
+        this.#prefix = value.startsWith('/') ? value : `/${value}`;
     }
     get responseIsBody() {
-        return this._responseIsBody;
+        return this.#responseIsBody;
     }
     set responseIsBody(value) {
-        this._responseIsBody = value;
-        this._dataKey = value ? false : this.generateDataKeyName();
+        this.#responseIsBody = value;
+        this.#dataKey = value ? false : this.generateDataKeyName();
     }
     get filePath() {
-        return this._filePath;
+        return this.#filePath;
     }
     set filePath(value) {
-        this._filePath = value;
+        this.#filePath = value;
     }
     get target() {
-        return this._target;
+        return this.#target;
     }
     set target(value) {
-        this._target = value;
+        this.#target = value;
     }
     get repository() {
-        return this._repository;
+        return this.#repository;
     }
     set repository(value) {
-        this._repository = value;
+        this.#repository = value;
     }
     get entities() {
-        return this._entities;
+        return this.#entities;
     }
     set entities(value) {
-        this._entities = value;
+        this.#entities = value;
     }
     get entity() {
-        return this._entity;
+        return this.#entity;
     }
     set entity(value) {
-        this._entity = value;
+        this.#entity = value;
     }
     get dataKey() {
-        return this.responseIsBody ? false : this._dataKey;
+        return this.#responseIsBody ? false : this.#dataKey;
     }
     set dataKey(value) {
-        this._dataKey = value;
+        this.#dataKey = value;
         if (value === false) {
-            this._responseIsBody = true;
+            this.#responseIsBody = true;
         }
     }
     get targetName() {
-        return this._targetName;
+        return this.#targetName;
     }
     set targetName(value) {
-        this._targetName = value;
+        this.#targetName = value;
+    }
+    get swaggerTag() {
+        return this.#swaggerTag;
+    }
+    set swaggerTag(tag) {
+        this.#swaggerTag = tag;
     }
 }
-exports.default = ModuleMetaData;

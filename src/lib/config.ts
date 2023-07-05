@@ -1,70 +1,36 @@
-import '../namespace/Notores';
 import {readFileSync, writeFileSync} from 'fs';
-import {loggerFactory} from "./logger";
 import {join} from 'path';
-import {IThemeConfig} from '../namespace/Notores';
+import assign from 'assign-deep';
+import {systemLoggerFactory} from "./Logger";
+import { Notores } from '../types/Notores';
 
-const assign = require('assign-deep');
-
-const logger = loggerFactory(module);
-
+const logger = systemLoggerFactory('@notores/core');
 const rootDir = process.cwd();
-const notoresConfigFileName = 'notores.json';
+const notoresConfigFilename = 'notores.json';
 
-const defaultCoreConfig: object = {
+const defaultConfig: Notores.Config = {
     authentication: {
         enabled: true,
-        usernameField: 'email',
-        saltRounds: 15,
+        saltRounds: 15
     },
     jwt: {
-        secretOrKey: 'OVERWRITE THIS COOKIE PROPERTY', // TODO Maybe autogenerate notores.json file if not set??
-        issuer: 'ADD_ISSUER',
-        audience: 'ADD_AUDIENCE',
+        secretOrKey: process.env.JWT_SECRET || 'OVERWRITE THIS COOKIE PROPERTY', // TODO Maybe autogenerate notores.json file if not set??
+        issuer: process.env.JWT_ISSUER || 'ADD_ISSUER',
+        audience: process.env.JWT_AUDIENCE || 'ADD_AUDIENCE',
     },
-    requests: {
-        responseTypes: ['html', 'json'],
+    server: {
+        accepts: ['json'],
+        contentType: ['json'],
+        requestSizeLimit: '1mb',
     },
-    useCookie: false,
-};
-const defaultThemeConfig: IThemeConfig = {
-    public: {
-        name: "notores",
-        isApp: false,
+    cookie: {
+        useCookie: false,
     },
-    admin: {
-        name: "notores",
-        isApp: false,
-    },
-};
-
-const configDefaults: Notores.IConfigObject[] = [
-    {
-        key: 'main',
-        value: defaultCoreConfig
-    }, {
-        key: 'theme',
-        value: defaultThemeConfig
-    }
-];
-
-export function addConfigDefault(obj: Notores.IConfigObject): void {
-    configDefaults.push(obj);
+    swagger: {}
 }
 
-export function getConfigDefaults(): Notores.IConfigObject[] {
-    return configDefaults;
-}
-
-export function getDefaultConfig(): Notores.IConfigObject {
-    const obj = {};
-    getConfigDefaults().forEach((defaultConfigObject: Notores.IConfigObject) => {
-        const conf = {};
-        // @ts-ignore
-        conf[defaultConfigObject.key] = defaultConfigObject.value;
-        assign(obj, conf);
-    });
-    return obj;
+export function getDefaultConfig(): Notores.Config {
+    return defaultConfig;
 }
 
 /**
@@ -74,7 +40,7 @@ export function getDefaultConfig(): Notores.IConfigObject {
  * @return {Object|{error: string}}`
  * @example const result = getJsonFile(`${process.cwd()}/package.j son`, authors);
  */
-export function getJsonFile(filepath: string, key?: string): Notores.IConfigObject | Error {
+export function getJsonFile<T extends Notores.Config>(filepath: string, key?: keyof T): Notores.Config | Error {
     try {
         const jsonFileString = readFileSync(filepath, 'utf-8');
         const jsonFile = JSON.parse(jsonFileString);
@@ -83,46 +49,37 @@ export function getJsonFile(filepath: string, key?: string): Notores.IConfigObje
         return jsonFile;
     } catch (e) {
         const errorMessage = `Error loading file "${filepath}". Error: ${e.message}`;
-        logger.error(errorMessage);
+        if (!filepath.includes(notoresConfigFilename))
+            logger.error(errorMessage);
         return new Error(errorMessage);
     }
 }
 
-export function getConfig(key?: string): Notores.IConfig {
-    const configFile = getJsonFile(join(rootDir, './', notoresConfigFileName), key) || {};
-    const config: Object = getDefaultConfig();
+export function getConfig<T extends Notores.Config>(): T {
+    let configFile: Notores.Config | {} = {};
+    try {
+        configFile = getJsonFile(join(rootDir, './', notoresConfigFilename));
+    } catch (e) {
+        logger.error(`${notoresConfigFilename} not found, did you add on in root? Using default values.`)
+    }
+    const config: Notores.Config = getDefaultConfig();
 
-    assign(config, configFile);
-
-    return <Notores.IConfig>config;
+    return assign(config, configFile);
 }
 
-export function getPackage(key: string): Object {
-    return getJsonFile(join(rootDir, './', 'package.json'), key);
-}
+export function writeConfig<T extends Notores.Config>(update: Record<string, any>, key?: string): T | Error {
+    const configContent: Notores.Config | {} = getJsonFile(join(rootDir, './', notoresConfigFilename)) || {};
 
-export function writeConfig(obj: Object, key: string): Notores.IConfig | Error {
-    const notoresConfig: Notores.IConfig = getConfig();
-    let newConfig: Notores.IConfig;
     if (key) {
-        newConfig = {
-            ...notoresConfig
-        };
-
-        newConfig[key] = {
-            ...obj,
-        };
+        assign(configContent[key], update);
     } else {
-        newConfig = {
-            ...notoresConfig,
-            ...obj,
-        };
+        assign(configContent, update);
     }
 
     try {
-        writeFileSync(join(rootDir, './', notoresConfigFileName), JSON.stringify(newConfig, null, 4));
+        writeFileSync(join(rootDir, './', notoresConfigFilename), JSON.stringify(configContent, null, 4));
         logger.info('Updated notores config');
-        return newConfig;
+        return getConfig<T>();
     } catch (e) {
         const errorMessage = `Error writing Notores config ${e.message}`;
         logger.error(errorMessage);

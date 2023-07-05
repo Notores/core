@@ -1,1 +1,0 @@
-{"version":3,"file":"Module.d.ts","sourceRoot":"","sources":["../../src/decorators/Module.ts"],"names":[],"mappings":"AAAA,OAAO,kBAAkB,CAAA;AACzB,OAAO,EAAC,sBAAsB,EAAC,MAAM,sCAAsC,CAAC;AAI5E,wBAAgB,MAAM,CAAC,IAAI,EAAE,SAAS,GAAG,cAAc,CAAC;AACxD,wBAAgB,MAAM,CAAC,IAAI,CAAC,EAAE,MAAM,GAAG,cAAc,CAAC;AACtD,wBAAgB,MAAM,CAAC,QAAQ,CAAC,EAAE,sBAAsB,GAAG,cAAc,CAAC"}

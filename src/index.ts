@@ -1,18 +1,17 @@
-export * from './types/HttpMethods';
-export * from './decorators/Api';
-export * from './decorators/HttpMethod';
-export * from './decorators/Middleware';
-export * from './decorators/Module';
-export * from './enums/MiddlewareForRouterLevelEnum'
-export * from './interfaces/IServer';
-export * from './interfaces/ISessionObject';
-export * from './interfaces/ModuleDecoratorOptions';
-export * from './interfaces/ModuleMethodDecoratorOptions';
-export * from './lib/config';
-export * from './lib/Locals';
-export * from './lib/logger';
-export * from './namespace/Notores';
-export * from './types/HttpMethods';
+/** Re-export **/
+export {Request, Response, NextFunction} from 'express';
+
+/** Root level **/
+export * from './symbols';
 export * from './Notores';
 export * from './server';
-export * from './symbols';
+
+export * from './decorators';
+export * from './interfaces'
+export * from './lib';
+
+/** Types **/
+export * from './types/Notores'
+
+export * from './modules/Swagger'
+export * from './modules/HTTP-LOG'

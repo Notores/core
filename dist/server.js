@@ -1,147 +1,124 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getServers = exports.createServer = void 0;
-const express_1 = __importDefault(require("express"));
-require("./namespace/Notores");
-const logger_1 = require("./lib/logger");
-const Responder_1 = __importDefault(require("./lib/Responder"));
-const logger = logger_1.loggerFactory(module);
-const apps = {
-    main: express_1.default(),
-    system: express_1.default(),
-    preMiddleware: express_1.default(),
-    public: {
-        main: express_1.default(),
-        preMiddleware: express_1.default(),
-        router: express_1.default(),
-        postMiddleware: express_1.default(),
-    },
-    restricted: {
-        main: express_1.default(),
-        preMiddleware: express_1.default(),
-        router: express_1.default(),
-        postMiddleware: express_1.default(),
-    },
-};
-function createServer() {
-    const passport = require('passport');
+import express from 'express';
+import { getConfig, systemLoggerFactory, errorResponseHandler, responseHandler, Locals } from './lib';
+const logger = systemLoggerFactory('@notores/core/server');
+let apps;
+export function createNotoresServer(notores) {
+    buildApps();
     const compression = require('compression');
     const bodyParser = require('body-parser');
     const sessions = require('client-sessions');
     const crypto = require('crypto');
-    const { getConfig } = require('./lib/config');
-    const locals = require('./lib/Locals');
-    const config = getConfig();
-    const mainConfig = config.main || {};
-    const serverConfig = mainConfig.server || { requestSizeLimit: '1mb' };
-    apps.main.use(compression());
-    apps.main.use((req, res, next) => {
-        res.header('X-Powered-By', 'Notores');
+    //TODO: add option to notores.json for compression config
+    apps.system.use(compression());
+    apps.system.use(function notoresXPoweredBy(_, res, next) {
+        res.set('X-Powered-By', 'Notores');
         next();
     });
-    apps.main.use(apps.system);
-    apps.system.use((req, res, next) => {
-        req.notores = getConfig();
+    apps.system.use(function notoresConfig(req, _, next) {
+        req.notores = notores;
+        req.config = getConfig();
         next();
     });
-    apps.system.use((req, res, next) => {
-        if (req.notores.main.useCookie) {
-            const secret = process.env.COOKIE_SECRET || req.notores.main.cookieSecret || 'NO_SECRET_SET_DO_SET_A_SECRET!';
-            if (secret === 'NO_SECRET_SET_DO_SET_A_SECRET!' && process.env.NODE_ENV !== 'production') {
-                logger.error(`NO COOKIE SECRET FOUND IN ENVIRONMENT OR IN NOTORES CONFIG FILE!`);
+    apps.system.use(function notoresUseCookieCheck(req, res, next) {
+        if (req.config.cookie.useCookie) {
+            const noSecretText = 'NO_SECRET_SET_-_PLEASE_SET_A_SECRET';
+            let secret = process.env.COOKIE_SECRET || req.config.cookie.secret || noSecretText;
+            if (secret === noSecretText && process.env.NODE_ENV !== 'production') {
+                logger.error('NO COOKIE SECRET FOUND IN ENVIRONMENT OR IN NOTORES CONFIG FILE!');
             }
             return sessions({
-                cookieName: 'notores',
-                requestKey: 'session',
-                secret: process.env.COOKIE_SECRET || 'BASE KEY',
-                duration: 20 * 7 * 24 * 60 * 60 * 1000,
-                activeDuration: 20 * 7 * 24 * 60 * 60 * 1000,
+                cookieName: req.config.cookie.name || 'notores',
+                requestKey: req.config.cookie.key || 'session',
+                secret,
+                duration: req.config.cookie.duration || 20 * 7 * 24 * 60 * 60 * 1000,
+                activeDuration: req.config.cookie.activeDuration || 20 * 7 * 24 * 60 * 60 * 1000,
                 cookie: {
-                    httpOnly: true,
+                    httpOnly: req.config.cookie.httpOnly, // when true, cookie is not accessible from javascript
                 }
             })(req, res, next);
         }
         return next();
     });
-    apps.system.use((req, res, next) => {
-        if (!req.notores.main.useCookie)
+    apps.system.use(function notoresSessionIdCheck(req, res, next) {
+        if (!req.config.cookie.useCookie)
             return next();
         if (req.session && !req.session.id) {
-            const buf = crypto.randomBytes(16);
-            req.session.id = buf.toString('hex');
-            // console.log(req.wsSession);
+            req.session.id = crypto.randomBytes(16).toString('hex');
         }
         next();
     });
-    apps.system.use(Responder_1.default.serverStatic);
-    apps.system.use(bodyParser.json({ limit: serverConfig.requestSizeLimit }));
-    apps.system.use(bodyParser.urlencoded({ extended: true, limit: serverConfig.requestSizeLimit }));
-    if (mainConfig.authentication.enabled) {
-        apps.system.use(passport.initialize());
-        apps.system.use(passport.session());
-        apps.system.use((req, res, next) => {
-            if (req.isAuthenticated())
-                return next();
-            passport.authenticate('jwt', (err, user, info) => {
-                if (user) {
-                    return req.login(user, () => {
-                        next();
-                    });
-                }
-                return next();
-            })(req, res, next);
-        });
-    }
-    apps.system.use(locals);
-    apps.main.use(apps.preMiddleware);
-    apps.main.use(apps.public.main);
-    apps.public.main.use(apps.public.preMiddleware);
-    apps.public.main.use(apps.public.router);
-    apps.public.main.use(apps.public.postMiddleware);
-    apps.main.use('/n-admin', apps.restricted.main);
-    if (mainConfig.authentication.enabled) {
-        apps.restricted.main.use((req, res, next) => {
-            if (!req.isAuthenticated()) {
-                if (res.locals.type === 'html') {
-                    // console.log('redirecting to login...');
-                    return res.redirect('/login');
-                }
-                else {
-                    res.locals.error = { status: 401, message: 'Unauthenticated' };
-                }
-            }
-            else {
-                if (req.user.roles.length === 0) {
-                    if (res.locals.type === 'html') {
-                        return res.redirect('/profile');
-                    }
-                    else {
-                        res.locals.error = { status: 403, message: 'Unauthorized' };
-                    }
-                }
-            }
+    apps.system.use(function notoresBodyParserJson(req, res, next) {
+        bodyParser.json({
+            limit: req.config.server.requestSizeLimit
+        })(req, res, next);
+    });
+    apps.system.use(function notoresBodyParserUrlEncoded(req, res, next) {
+        bodyParser.urlencoded({
+            extended: true,
+            limit: req.config.server.requestSizeLimit
+        })(req, res, next);
+    });
+    apps.preMiddleware.use(function notoresInitLocals(req, res, next) {
+        res.locals = new Locals(req, res);
+        next();
+    });
+    apps.restricted.main.use(function notoresRestrictedCheckAuthenticated(req, res, next) {
+        if (!req.config.authentication.enabled) {
             return next();
-        });
-    }
-    apps.restricted.main.use((req, res, next) => {
-        if (res.locals.hasError) {
-            return Responder_1.default.jsonResponder(req, res, next);
+        }
+        if (!req.isAuthenticated()) {
+            res.locals.statusCode = 401;
+            res.locals.error = new Error('Unauthenticated');
+        }
+        else if (req.user.roles.length === 0) {
+            res.locals.statusCode = 403;
+            res.locals.error = new Error('Unauthorized');
         }
         return next();
     });
-    apps.restricted.main.use(Responder_1.default.serverStatic);
-    apps.restricted.main.use(apps.restricted.preMiddleware);
-    apps.restricted.main.use(apps.restricted.router);
-    apps.restricted.main.use(apps.restricted.postMiddleware);
-    apps.restricted.main.use(Responder_1.default.responseHandler);
-    apps.main.use(Responder_1.default.responseHandler);
     return apps;
 }
-exports.createServer = createServer;
-function getServers() {
-    return apps;
+function buildApps() {
+    apps = {
+        main: express(),
+        system: express.Router(),
+        auth: express.Router(),
+        preMiddleware: express.Router(),
+        public: {
+            router: express.Router(),
+            preMiddleware: express.Router(),
+            main: express.Router(),
+            postMiddleware: express.Router(),
+            responders: express.Router(),
+        },
+        restricted: {
+            router: express.Router(),
+            preMiddleware: express.Router(),
+            main: express.Router(),
+            postMiddleware: express.Router(),
+            responders: express.Router(),
+        },
+        errorResponders: express.Router(),
+    };
+    /** Base **/
+    apps.main.use(apps.system);
+    apps.main.use(apps.auth);
+    apps.main.use(apps.preMiddleware);
+    /** Public **/
+    apps.main.use(apps.public.router);
+    apps.public.router.use(apps.public.preMiddleware);
+    apps.public.router.use(apps.public.main);
+    apps.public.router.use(apps.public.postMiddleware);
+    apps.public.router.use(apps.public.responders);
+    apps.public.responders.use(responseHandler);
+    /** Restricted **/
+    apps.main.use('/n-admin', apps.restricted.router);
+    apps.restricted.router.use(apps.restricted.preMiddleware);
+    apps.restricted.router.use(apps.restricted.main);
+    apps.restricted.router.use(apps.restricted.postMiddleware);
+    apps.restricted.router.use(apps.restricted.responders);
+    apps.restricted.responders.use(responseHandler);
+    /** Error Responder **/
+    apps.main.use(apps.errorResponders);
+    apps.errorResponders.use(errorResponseHandler);
 }
-exports.getServers = getServers;

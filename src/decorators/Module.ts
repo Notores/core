@@ -1,7 +1,7 @@
 import 'reflect-metadata'
-import {ModuleDecoratorOptions} from '../interfaces/ModuleDecoratorOptions';
-import ModuleMetaData from "../lib/ModuleMetaData";
-import {moduleMetadataKey} from "../symbols";
+import {ModuleDecoratorOptions} from '../interfaces';
+import {ApiMetaData, getClassMethodsByDecoratedProperty, ModuleMetaData} from "../lib";
+import {apiMetadataKey, moduleMetadataKey} from "../symbols";
 
 export function Module(none: undefined): ClassDecorator;
 export function Module(path?: string): ClassDecorator;
@@ -38,15 +38,43 @@ export function Module(settings: any): ClassDecorator {
             if (settings.repository) {
                 metadata.repository = settings.repository;
             }
+            if(settings.swaggerTag) {
+                metadata.swaggerTag = settings.swaggerTag || {name: target.name.replace('Module', '')};
+            } else if (settings.swaggerTag === false) {
+                metadata.swaggerTag = undefined;
+            }
+
         }
 
-
         Reflect.defineMetadata(moduleMetadataKey, metadata, target);
-        // target[ROOT_ROUTE] = settings?.prefix?.startsWith('/') ? settings.prefix : `/${settings.prefix}`;
-        // target[DATA_KEY] = settings.dataKey;
-        // target[IGNORE_DATA_KEY] = settings.responseAsBody;
-        // target[MODULE_PATH] = filePath;
+
+        setPathDefaults(target, metadata);
     }
+}
+
+function setPathDefaults(target: any, metadata: ModuleMetaData) {
+    try {
+
+        const pathRouteMethods = getClassMethodsByDecoratedProperty(target, apiMetadataKey);
+        for (const propertyKey of pathRouteMethods) {
+            const existingApiMetaData: ApiMetaData = Reflect.getOwnMetadata(apiMetadataKey, target.prototype[propertyKey]);
+            existingApiMetaData.addPathPrefix(metadata.prefix);
+            if (existingApiMetaData.addSwagger) {
+                existingApiMetaData
+                    .addDefaultResponse(metadata.dataKey)
+                    .addDefaultParameter(target)
+                    .setResponses(metadata.dataKey);
+
+                if(metadata.swaggerTag) {
+                    existingApiMetaData.addTag(metadata.swaggerTag.name);
+                }
+                existingApiMetaData.save();
+            }
+        }
+    } catch (e) {
+        console.log('error setting pathDefaults', e);
+    }
+
 }
 
 function getFilePath() {

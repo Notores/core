@@ -1,50 +1,63 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-class RoutingMetadata {
+export default class RoutingMetadata {
+    _path = '';
+    _roles;
+    _authenticated = false;
+    _unAuthRedirect = false;
+    _restricted = false; // Use /n-admin path
+    _target;
+    _propertyKey;
+    _prefix = '';
     constructor(target, propertyKey) {
-        this._paths = [];
-        this._authenticated = false;
-        this._unAuthRedirect = false;
-        this._restricted = false; // Use /n-admin path
-        this.isAuthorized = (userRoles) => {
-            if (!this._roles)
-                return true;
-            for (let i = 0; i < userRoles.length; i++) {
-                const r = userRoles[i];
-                const userRole = (typeof r === 'string' ? r : r.role).toLowerCase();
-                if (this._roles.includes(userRole))
-                    return true;
-            }
-            return false;
-        };
-        this.setAuthenticated = (settings) => {
-            this._authenticated = true;
-            if (settings === null || settings === void 0 ? void 0 : settings.redirect)
-                this._unAuthRedirect = settings.redirect;
-        };
-        this.setAuthorized = (roles) => {
-            this.setAuthenticated();
-            this.roles = (Array.isArray(roles) ? roles : [roles]);
-        };
-        this.setRestricted = (roles = ['admin']) => {
-            this.setAuthenticated();
-            this._restricted = true;
-            this.roles = (Array.isArray(roles) ? roles : [roles]);
-        };
-        this.setAdmin = () => {
-            this.setRestricted(['admin']);
-        };
         this._target = target;
         this._propertyKey = propertyKey;
     }
-    set paths(paths) {
-        paths.forEach((path) => this.setPath(path));
+    isAuthorized = (userRoles) => {
+        if (!this._roles)
+            return true;
+        for (let i = 0; i < userRoles.length; i++) {
+            const r = userRoles[i];
+            const userRole = (typeof r === 'string' ? r : r.role).toLowerCase();
+            if (this._roles.includes(userRole))
+                return true;
+        }
+        return false;
+    };
+    setAuthenticated = (settings) => {
+        this._authenticated = true;
+        if (settings?.redirect)
+            this._unAuthRedirect = settings.redirect;
+    };
+    setAuthorized = (roles) => {
+        this.setAuthenticated();
+        this.roles = (Array.isArray(roles) ? roles : [roles]);
+    };
+    setRestricted = (roles = ['admin']) => {
+        this.setAuthenticated();
+        this._restricted = true;
+        this.roles = (Array.isArray(roles) ? roles : [roles]);
+    };
+    setAdmin = () => {
+        this.setRestricted(['admin']);
+    };
+    set path(path) {
+        this._path = path;
     }
-    setPaths(paths) {
-        Array.isArray(paths) ? this.paths = paths : this.paths = [paths];
-    }
-    setPath(path) {
-        this._paths.push(path);
+    addPathPrefix(prefix) {
+        if (typeof this._path === 'string') {
+            if (this._path === '/') {
+                this._path = prefix;
+                return this;
+            }
+            let newPath = `${prefix}`;
+            if (prefix.endsWith('/') || this._path.startsWith('/')) {
+                newPath += this._path;
+            }
+            else {
+                newPath += `/${this._path}`;
+            }
+            this._path = newPath;
+        }
+        return this;
     }
     set roles(roles) {
         if (!this._roles)
@@ -53,8 +66,19 @@ class RoutingMetadata {
             roles.push('admin');
         this._roles.push(...roles.map((r) => r.toLowerCase()));
     }
-    get paths() {
-        return this._paths;
+    get path() {
+        let path = this._path;
+        if (typeof path !== 'string')
+            return path;
+        if (this._prefix !== '') {
+            if (this._prefix.endsWith('/') || path.startsWith('/'))
+                path = `${this._prefix}${path}`;
+            else
+                path = `${this._prefix}/${path}`;
+        }
+        if (this._restricted)
+            return `/n-admin${path}`;
+        return path;
     }
     get roles() {
         return this._roles || [];
@@ -75,4 +99,3 @@ class RoutingMetadata {
         return this._propertyKey;
     }
 }
-exports.default = RoutingMetadata;

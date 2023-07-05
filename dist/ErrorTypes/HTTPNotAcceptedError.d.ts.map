@@ -1,1 +1,0 @@
-{"version":3,"file":"HTTPNotAcceptedError.d.ts","sourceRoot":"","sources":["../../src/ErrorTypes/HTTPNotAcceptedError.ts"],"names":[],"mappings":"AAAA,qBAAa,oBAAqB,SAAQ,KAAK;IAEpC,eAAe,EAAE,MAAM,EAAE,CAAC;gBAErB,eAAe,EAAE,MAAM,EAAE,EAAE,OAAO,EAAE,MAAM;IAOtD,IAAI,gBAAgB,WAEnB;IAED,IAAI,OAAO,aAEV;CACJ"}

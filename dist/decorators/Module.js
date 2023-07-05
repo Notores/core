@@ -1,16 +1,10 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Module = void 0;
-require("reflect-metadata");
-const ModuleMetaData_1 = __importDefault(require("../lib/ModuleMetaData"));
-const symbols_1 = require("../symbols");
-function Module(settings) {
+import 'reflect-metadata';
+import { getClassMethodsByDecoratedProperty, ModuleMetaData } from "../lib";
+import { apiMetadataKey, moduleMetadataKey } from "../symbols";
+export function Module(settings) {
     return function (target) {
         const filePath = getFilePath();
-        const metadata = new ModuleMetaData_1.default(target, filePath);
+        const metadata = new ModuleMetaData(target, filePath);
         if (!settings) {
             metadata.responseIsBody = false;
         }
@@ -40,15 +34,39 @@ function Module(settings) {
             if (settings.repository) {
                 metadata.repository = settings.repository;
             }
+            if (settings.swaggerTag) {
+                metadata.swaggerTag = settings.swaggerTag || { name: target.name.replace('Module', '') };
+            }
+            else if (settings.swaggerTag === false) {
+                metadata.swaggerTag = undefined;
+            }
         }
-        Reflect.defineMetadata(symbols_1.moduleMetadataKey, metadata, target);
-        // target[ROOT_ROUTE] = settings?.prefix?.startsWith('/') ? settings.prefix : `/${settings.prefix}`;
-        // target[DATA_KEY] = settings.dataKey;
-        // target[IGNORE_DATA_KEY] = settings.responseAsBody;
-        // target[MODULE_PATH] = filePath;
+        Reflect.defineMetadata(moduleMetadataKey, metadata, target);
+        setPathDefaults(target, metadata);
     };
 }
-exports.Module = Module;
+function setPathDefaults(target, metadata) {
+    try {
+        const pathRouteMethods = getClassMethodsByDecoratedProperty(target, apiMetadataKey);
+        for (const propertyKey of pathRouteMethods) {
+            const existingApiMetaData = Reflect.getOwnMetadata(apiMetadataKey, target.prototype[propertyKey]);
+            existingApiMetaData.addPathPrefix(metadata.prefix);
+            if (existingApiMetaData.addSwagger) {
+                existingApiMetaData
+                    .addDefaultResponse(metadata.dataKey)
+                    .addDefaultParameter(target)
+                    .setResponses(metadata.dataKey);
+                if (metadata.swaggerTag) {
+                    existingApiMetaData.addTag(metadata.swaggerTag.name);
+                }
+                existingApiMetaData.save();
+            }
+        }
+    }
+    catch (e) {
+        console.log('error setting pathDefaults', e);
+    }
+}
 function getFilePath() {
     const err = new Error();
     const stack = err.stack;

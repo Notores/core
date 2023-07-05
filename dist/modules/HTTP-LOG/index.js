@@ -1,4 +1,3 @@
-"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -8,54 +7,32 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+import { Module, Use } from "../../decorators";
+import { systemLoggerFactory } from "../../lib";
+const logger = systemLoggerFactory('@notores/core - HTTP response');
+let NotoresBaseRequestLogger = class NotoresBaseRequestLogger {
+    logger(req, res) {
+        const startTime = new Date();
+        res.on('close', () => {
+            const finishTime = new Date();
+            // @ts-ignore
+            const diffTime = Math.abs(finishTime - startTime);
+            const logResponse = res.locals.hasError ? `Error ${res.locals.statusCode}` : `Success ${res.locals.statusCode}`;
+            logger.info(`HTTP response - (${logResponse}):  ${req.method}:${req.originalUrl} (${diffTime} ms)`);
+            if (res.locals.hasError)
+                logger.error(`HTTP error - ${res.locals.error}`);
+        });
+    }
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-const moment_1 = __importDefault(require("moment"));
-const winston_1 = require("winston");
-const Module_1 = require("../../decorators/Module");
-const Middleware_1 = require("../../decorators/Middleware");
-const { combine, timestamp, printf } = winston_1.format;
-const myFormat = printf((info) => {
-    return `${moment_1.default(info.timestamp).format('YYYY-MM-DD HH:mm:sss')} ${info.message}`;
-});
-const logger = winston_1.createLogger({
-    format: combine(
-    // label({label: getLabel(callingModule)}),
-    timestamp(), myFormat),
-    transports: [
-        new winston_1.transports.Console(),
-        new winston_1.transports.File({ filename: 'logs/error.log', level: 'error' }),
-        new winston_1.transports.File({ filename: 'logs/info.log', level: 'info' }),
-        new winston_1.transports.File({ filename: 'logs/warn.log', level: 'warn' }),
-        new winston_1.transports.File({ filename: 'logs/notores.log' }),
-    ]
-});
-let RequestLogger = /** @class */ (() => {
-    let RequestLogger = class RequestLogger {
-        logger(req, res) {
-            const startTime = new Date();
-            res.on('close', () => {
-                const finishTime = new Date();
-                // @ts-ignore
-                const diffTime = Math.abs(finishTime - startTime);
-                const logResponse = res.locals.hasError ? `Error ${res.locals.error.status}` : 'success';
-                logger.info(`HTTP response (${logResponse}):  ${req.method}:${req.originalUrl} (${diffTime} ms)`);
-                if (res.locals.hasError)
-                    logger.error(`HTTP error: ${res.locals.error.message}`);
-            });
-        }
-    };
-    __decorate([
-        Middleware_1.Use(),
-        __metadata("design:type", Function),
-        __metadata("design:paramtypes", [Object, Object]),
-        __metadata("design:returntype", void 0)
-    ], RequestLogger.prototype, "logger", null);
-    RequestLogger = __decorate([
-        Module_1.Module()
-    ], RequestLogger);
-    return RequestLogger;
-})();
-exports.default = RequestLogger;
+__decorate([
+    Use(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], NotoresBaseRequestLogger.prototype, "logger", null);
+NotoresBaseRequestLogger = __decorate([
+    Module({
+        swaggerTag: false
+    })
+], NotoresBaseRequestLogger);
+export { NotoresBaseRequestLogger };

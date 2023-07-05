@@ -1,1 +1,0 @@
-{"version":3,"file":"ModuleMethodDecoratorOptions.d.ts","sourceRoot":"","sources":["../../src/interfaces/ModuleMethodDecoratorOptions.ts"],"names":[],"mappings":"AAAA,MAAM,WAAW,gCAAgC;IAC7C,KAAK,CAAC,EAAE,KAAK,CAAC,MAAM,GAAG,MAAM,CAAC,GAAG,MAAM,GAAG,MAAM,CAAC;IACjD,GAAG,CAAC,EAAE,OAAO,CAAC;IACd,IAAI,CAAC,EAAE,OAAO,CAAC;IACf,aAAa,CAAC,EAAE,OAAO,CAAC;CAC3B"}

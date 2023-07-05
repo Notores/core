@@ -1,5 +1,7 @@
+import {ApiPath} from "../types/Notores";
+
 export interface ModuleMiddlewareDecoratorOptions {
-    paths?: Array<string | RegExp> | string | RegExp;
+    path?: ApiPath;
     pre?: boolean;
     post?: boolean;
     authenticated?: boolean;

@@ -1,11 +1,12 @@
 export default class RoutingMetadata {
-    protected _paths: Array<string | RegExp> = [];
+    protected _path: string | RegExp = '';
     protected _roles?: string[];
     protected _authenticated: boolean = false;
     protected _unAuthRedirect: boolean = false;
     protected _restricted: boolean = false; // Use /n-admin path
     protected readonly _target: any;
     protected readonly _propertyKey: string;
+    protected _prefix: string = '';
 
     constructor(target: any, propertyKey: string) {
         this._target = target;
@@ -45,16 +46,25 @@ export default class RoutingMetadata {
         this.setRestricted(['admin']);
     }
 
-    set paths(paths: Array<string | RegExp>) {
-        paths.forEach((path: string | RegExp) => this.setPath(path))
+    set path(path: string | RegExp) {
+        this._path = path;
     }
 
-    public setPaths(paths: Array<string | RegExp> | string | RegExp) {
-        Array.isArray(paths) ? this.paths = paths : this.paths = [paths];
-    }
-
-    protected setPath(path: string | RegExp) {
-        this._paths.push(path);
+    addPathPrefix(prefix: string) {
+        if (typeof this._path === 'string') {
+            if (this._path === '/') {
+                this._path = prefix;
+                return this;
+            }
+            let newPath = `${prefix}`
+            if (prefix.endsWith('/') || this._path.startsWith('/')) {
+                newPath += this._path;
+            } else {
+                newPath += `/${this._path}`;
+            }
+            this._path = newPath;
+        }
+        return this;
     }
 
     set roles(roles: string[]) {
@@ -64,8 +74,20 @@ export default class RoutingMetadata {
         this._roles.push(...roles.map((r: string) => r.toLowerCase()));
     }
 
-    get paths(): Array<string | RegExp> {
-        return this._paths;
+    get path(): string | RegExp {
+        let path = this._path;
+        if (typeof path !== 'string') return path;
+
+        if (this._prefix !== '') {
+            if (this._prefix.endsWith('/') || path.startsWith('/'))
+                path = `${this._prefix}${path}`;
+            else
+                path = `${this._prefix}/${path}`;
+        }
+
+        if (this._restricted)
+            return `/n-admin${path}`
+        return path;
     }
 
     get roles(): string[] {

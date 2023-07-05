@@ -1,11 +1,10 @@
 import {createLogger, format, transports, Logger} from "winston";
 import path from "path";
 import moment from "moment";
-import Module = NodeJS.Module;
 
 const {combine, timestamp, label, printf} = format;
 
-const getLabel = function (callingModule: Module) {
+const getLabel = function (callingModule: NodeModule) {
     const parts = callingModule.filename.split(path.sep);
     return path.join(parts[parts.length - 2], parts.pop() || '');
 };
@@ -14,10 +13,10 @@ const myFormat = printf((info: any) => {
     return `${moment(info.timestamp).format('YYYY-MM-DD HH:mm:sss')} [${info.label}] ${info.level}: ${info.message}`;
 });
 
-export function loggerFactory(callingModule: Module): Logger {
+export function loggerFactory(callingModule: NodeModule | string): Logger {
     return createLogger({
         format: combine(
-            label({label: getLabel(callingModule)}),
+            label({label: typeof callingModule === 'string' ? callingModule : getLabel(callingModule)}),
             timestamp(),
             myFormat
         ),
@@ -31,10 +30,10 @@ export function loggerFactory(callingModule: Module): Logger {
     });
 }
 
-export function moduleLoggerFactory(moduleName: string): Logger {
+export function moduleLoggerFactory(moduleName: NodeModule | string): Logger {
     return createLogger({
         format: combine(
-            label({label: moduleName}),
+            label({label: typeof moduleName === 'string' ? moduleName : getLabel(moduleName)}),
             timestamp(),
             myFormat
         ),
@@ -48,10 +47,10 @@ export function moduleLoggerFactory(moduleName: string): Logger {
     });
 }
 
-export function systemLoggerFactory(loggerLabel: string): Logger {
+export function systemLoggerFactory(loggerLabel: string | NodeModule): Logger {
     return createLogger({
         format: combine(
-            label({label: loggerLabel}),
+            label({label: typeof loggerLabel === 'string' ? loggerLabel : getLabel(loggerLabel)}),
             timestamp(),
             myFormat
         ),
