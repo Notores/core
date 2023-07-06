@@ -1,20 +1,26 @@
-import assign from 'assign-deep';
-import { Notores } from '../types/Notores';
-export class Locals extends Notores.Locals {
-    _contentType = ['json'];
-    _body = {};
-    _payload = {};
-    _url = '';
-    _path = '';
-    _user = null;
-    _query = {};
-    _accepts = ['json'];
-    _error = null;
-    _statusCode = 200;
-    _authenticated = false;
-    _NODE_ENV = process.env.NODE_ENV || 'development';
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Locals = void 0;
+const assign_deep_1 = __importDefault(require("assign-deep"));
+const Notores_1 = require("../types/Notores");
+class Locals extends Notores_1.Notores.Locals {
     constructor(req, res) {
         super();
+        this._contentType = ['json'];
+        this._body = {};
+        this._payload = {};
+        this._url = '';
+        this._path = '';
+        this._user = null;
+        this._query = {};
+        this._accepts = ['json'];
+        this._error = null;
+        this._statusCode = 200;
+        this._authenticated = false;
+        this._NODE_ENV = process.env.NODE_ENV || 'development';
         this._query = req.query;
         this._payload = req.body;
         this._url = req.originalUrl;
@@ -32,7 +38,7 @@ export class Locals extends Notores.Locals {
     setBody(body, overwrite = false) {
         if (!overwrite && this.bodyPropertyIsSet())
             return;
-        return assign(this._body, body);
+        return (0, assign_deep_1.default)(this._body, body);
     }
     bodyPropertyIsSet(property) {
         if (!property) {
@@ -101,6 +107,7 @@ export class Locals extends Notores.Locals {
         return this._path;
     }
     toJSON() {
-        return { ...this._body };
+        return Object.assign({}, this._body);
     }
 }
+exports.Locals = Locals;

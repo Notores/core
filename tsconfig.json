@@ -1,11 +1,13 @@
 {
   "compilerOptions": {
     "outDir": "./dist",     
-    "target": "ESNext",
+    "target": "ES2015",
+    "module": "CommonJS",
     "esModuleInterop": true,
     "moduleResolution": "Node",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "declaration": false,
     "skipLibCheck": true,
     "types": [
       "reflect-metadata"

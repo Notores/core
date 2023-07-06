@@ -1,13 +1,35 @@
-import { HttpMethod } from "../ApiMetaData";
-import { apiMetadataKey, moduleMetadataKey } from "../../symbols";
-import { generateRoutingParameters } from "../../decorators";
-import { setBody } from "./helpers";
-export function bindPaths({ pathRouteMethods, ...restInput }) {
-    pathRouteMethods.forEach(pathRouteMethod => bindPath({
-        pathRouteMethod,
-        ...restInput
-    }));
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.bindPaths = void 0;
+const ApiMetaData_1 = require("../ApiMetaData");
+const symbols_1 = require("../../symbols");
+const decorators_1 = require("../../decorators");
+const helpers_1 = require("./helpers");
+function bindPaths(_a) {
+    var { pathRouteMethods } = _a, restInput = __rest(_a, ["pathRouteMethods"]);
+    pathRouteMethods.forEach(pathRouteMethod => bindPath(Object.assign({ pathRouteMethod }, restInput)));
 }
+exports.bindPaths = bindPaths;
 function bindSwaggerDoc({ operations, apiMetaData, route, }) {
     const method = apiMetaData.method;
     const swaggerDoc = apiMetaData.swaggerDoc;
@@ -22,20 +44,22 @@ function bindSwaggerDoc({ operations, apiMetaData, route, }) {
     operations[path] = swaggerPathDoc;
 }
 function bindPath({ instance, Clazz, mod, server, pathRouteMethod, operations, }) {
-    const moduleMetaData = Reflect.getOwnMetadata(moduleMetadataKey, Clazz);
-    const apiMetaData = Reflect.getOwnMetadata(apiMetadataKey, instance[pathRouteMethod]);
+    const moduleMetaData = Reflect.getOwnMetadata(symbols_1.moduleMetadataKey, Clazz);
+    const apiMetaData = Reflect.getOwnMetadata(symbols_1.apiMetadataKey, instance[pathRouteMethod]);
     function wrapperMiddleware(routingFunction) {
-        return async function routeWrapper(req, res, next) {
-            const params = generateRoutingParameters(instance, pathRouteMethod, req, res, next);
-            const result = await routingFunction(...params);
-            if (result === null || result === undefined) {
-                return next();
-            }
-            res.locals.setBody(setBody(result, moduleMetaData));
-            if (apiMetaData.method === HttpMethod.POST && !(result instanceof Error)) {
-                res.locals.statusCode = 201;
-            }
-            next();
+        return function routeWrapper(req, res, next) {
+            return __awaiter(this, void 0, void 0, function* () {
+                const params = (0, decorators_1.generateRoutingParameters)(instance, pathRouteMethod, req, res, next);
+                const result = yield routingFunction(...params);
+                if (result === null || result === undefined) {
+                    return next();
+                }
+                res.locals.setBody((0, helpers_1.setBody)(result, moduleMetaData));
+                if (apiMetaData.method === ApiMetaData_1.HttpMethod.POST && !(result instanceof Error)) {
+                    res.locals.statusCode = 201;
+                }
+                next();
+            });
         };
     }
     ;

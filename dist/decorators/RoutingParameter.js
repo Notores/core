@@ -1,19 +1,23 @@
-import 'reflect-metadata';
-import { apiParameterMetadataKey } from "../symbols";
-import { ApiMetaData, getFunctionParamName, isClassType, isPrimitiveNonArrayType } from "../lib";
-export var ParamTypes;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Next = exports.Response = exports.Res = exports.Request = exports.Req = exports.ReqHeader = exports.ReqParam = exports.ReqParams = exports.ReqQuery = exports.ReqBody = exports.ReqUser = exports.NotoresApp = exports.NApp = exports.NotoresConfig = exports.NConfig = exports.ResLocals = exports.registerRoutingParameterDecorator = exports.routingParameterDecorators = exports.addRoutingParameterDecoratorToFunction = exports.addRoutingParameterDecoratorInfoToSwagger = exports.generateRoutingParameters = exports.ParamTypes = void 0;
+require("reflect-metadata");
+const symbols_1 = require("../symbols");
+const lib_1 = require("../lib");
+var ParamTypes;
 (function (ParamTypes) {
     ParamTypes["int"] = "int";
     ParamTypes["integer"] = "int";
     ParamTypes["float"] = "float";
     ParamTypes["bool"] = "boolean";
     ParamTypes["boolean"] = "boolean";
-})(ParamTypes || (ParamTypes = {}));
-export function generateRoutingParameters(instance, pathRouteMethod, req, res, next) {
+})(ParamTypes = exports.ParamTypes || (exports.ParamTypes = {}));
+function generateRoutingParameters(instance, pathRouteMethod, req, res, next) {
+    var _a;
     const params = [];
-    let existingApiDecorators = Reflect.getOwnMetadata(apiParameterMetadataKey, instance[pathRouteMethod]) ?? [];
+    let existingApiDecorators = (_a = Reflect.getOwnMetadata(symbols_1.apiParameterMetadataKey, instance[pathRouteMethod])) !== null && _a !== void 0 ? _a : [];
     existingApiDecorators.forEach((apiDecoratorInfo) => {
-        const dec = routingParameterDecorators.find((dec) => dec.type === apiDecoratorInfo.type);
+        const dec = exports.routingParameterDecorators.find((dec) => dec.type === apiDecoratorInfo.type);
         if (!dec)
             return;
         params[apiDecoratorInfo.index] = dec.cb(apiDecoratorInfo, req, res, next);
@@ -23,59 +27,64 @@ export function generateRoutingParameters(instance, pathRouteMethod, req, res, n
     params.push(next);
     return params;
 }
-export function addRoutingParameterDecoratorInfoToSwagger(type, target, propertyKey, index) {
+exports.generateRoutingParameters = generateRoutingParameters;
+function addRoutingParameterDecoratorInfoToSwagger(type, target, propertyKey, index) {
     let reflectParamType = Reflect.getMetadata('design:paramtypes', target, propertyKey);
     let paramType = reflectParamType[index];
-    if (!isClassType(paramType))
+    if (!(0, lib_1.isClassType)(paramType))
         return;
-    const apiMetadata = ApiMetaData.getApiMetaData(target, propertyKey);
+    const apiMetadata = lib_1.ApiMetaData.getApiMetaData(target, propertyKey);
     switch (type) {
         case 'requestBody':
-            if (isClassType(paramType))
+            if ((0, lib_1.isClassType)(paramType))
                 apiMetadata.requestBody = paramType;
             break;
         case 'query':
-            if (isPrimitiveNonArrayType(paramType))
-                apiMetadata.addSwaggerQueryParameter(getFunctionParamName(target[propertyKey], index), paramType);
+            if ((0, lib_1.isPrimitiveNonArrayType)(paramType))
+                apiMetadata.addSwaggerQueryParameter((0, lib_1.getFunctionParamName)(target[propertyKey], index), paramType);
             break;
     }
     apiMetadata.save();
 }
-export function addRoutingParameterDecoratorToFunction(type, target, propertyKey, index, data) {
-    let existingApiDecorators = Reflect.getOwnMetadata(apiParameterMetadataKey, target[propertyKey]) ?? [];
+exports.addRoutingParameterDecoratorInfoToSwagger = addRoutingParameterDecoratorInfoToSwagger;
+function addRoutingParameterDecoratorToFunction(type, target, propertyKey, index, data) {
+    var _a;
+    let existingApiDecorators = (_a = Reflect.getOwnMetadata(symbols_1.apiParameterMetadataKey, target[propertyKey])) !== null && _a !== void 0 ? _a : [];
     const apiDecoratorInfo = {
         type,
         index,
         data,
-        paramName: getFunctionParamName(target[propertyKey], index),
+        paramName: (0, lib_1.getFunctionParamName)(target[propertyKey], index),
     };
     let reflectParamType = Reflect.getMetadata('design:paramtypes', target, propertyKey);
     let paramType = reflectParamType[index];
     switch (type) {
         case 'body':
-            if (isClassType(paramType))
+            if ((0, lib_1.isClassType)(paramType))
                 apiDecoratorInfo.clazz = paramType;
             break;
         case 'query':
-            if (isPrimitiveNonArrayType(paramType) && typeof paramType === 'function') {
+            if ((0, lib_1.isPrimitiveNonArrayType)(paramType) && typeof paramType === 'function') {
                 apiDecoratorInfo.primitiveDataType = paramType;
             }
     }
     existingApiDecorators.push(apiDecoratorInfo);
-    Reflect.defineMetadata(apiParameterMetadataKey, existingApiDecorators, target[propertyKey]);
+    Reflect.defineMetadata(symbols_1.apiParameterMetadataKey, existingApiDecorators, target[propertyKey]);
 }
-export const routingParameterDecorators = [];
-export function registerRoutingParameterDecorator(type, cb) {
-    routingParameterDecorators.push({ type, cb });
+exports.addRoutingParameterDecoratorToFunction = addRoutingParameterDecoratorToFunction;
+exports.routingParameterDecorators = [];
+function registerRoutingParameterDecorator(type, cb) {
+    exports.routingParameterDecorators.push({ type, cb });
 }
+exports.registerRoutingParameterDecorator = registerRoutingParameterDecorator;
 registerRoutingParameterDecorator('locals', ({ data }, req, res) => res.locals);
 registerRoutingParameterDecorator('config', ({ data }, req) => req.config);
 registerRoutingParameterDecorator('notores', ({ data }, req) => req.notores);
 registerRoutingParameterDecorator('user', ({ data }, req) => req.user);
 registerRoutingParameterDecorator('body', ({ data, clazz }, req) => {
     const body = req.body;
-    if (isClassType(clazz) && !Array.isArray(body) && typeof body === 'object') {
-        return Object.setPrototypeOf({ ...body }, clazz.prototype);
+    if ((0, lib_1.isClassType)(clazz) && !Array.isArray(body) && typeof body === 'object') {
+        return Object.setPrototypeOf(Object.assign({}, body), clazz.prototype);
     }
     return body;
 });
@@ -112,57 +121,73 @@ registerRoutingParameterDecorator('header', ({ data }, req) => req.headers[data.
 registerRoutingParameterDecorator('request', ({ data }, req) => req);
 registerRoutingParameterDecorator('response', ({ data }, req, res) => res);
 registerRoutingParameterDecorator('next', ({ data }, req, res, next) => next);
-export function ResLocals(target, key, index) {
+function ResLocals(target, key, index) {
     addRoutingParameterDecoratorToFunction('locals', target, key, index);
 }
-export function NConfig(target, key, index) {
+exports.ResLocals = ResLocals;
+function NConfig(target, key, index) {
     addRoutingParameterDecoratorToFunction('config', target, key, index);
 }
-export function NotoresConfig(target, key, index) {
+exports.NConfig = NConfig;
+function NotoresConfig(target, key, index) {
     addRoutingParameterDecoratorToFunction('config', target, key, index);
 }
-export function NApp(target, key, index) {
+exports.NotoresConfig = NotoresConfig;
+function NApp(target, key, index) {
     addRoutingParameterDecoratorToFunction('notores', target, key, index);
 }
-export function NotoresApp(target, key, index) {
+exports.NApp = NApp;
+function NotoresApp(target, key, index) {
     addRoutingParameterDecoratorToFunction('notores', target, key, index);
 }
-export function ReqUser(target, key, index) {
+exports.NotoresApp = NotoresApp;
+function ReqUser(target, key, index) {
     addRoutingParameterDecoratorToFunction('user', target, key, index);
 }
-export function ReqBody(target, key, index) {
+exports.ReqUser = ReqUser;
+function ReqBody(target, key, index) {
     addRoutingParameterDecoratorInfoToSwagger('requestBody', target, key, index);
     addRoutingParameterDecoratorToFunction('body', target, key, index);
 }
-export function ReqQuery(target, key, index) {
+exports.ReqBody = ReqBody;
+function ReqQuery(target, key, index) {
     addRoutingParameterDecoratorInfoToSwagger('query', target, key, index);
     addRoutingParameterDecoratorToFunction('query', target, key, index);
 }
-export function ReqParams(target, key, index) {
+exports.ReqQuery = ReqQuery;
+function ReqParams(target, key, index) {
     addRoutingParameterDecoratorToFunction('params', target, key, index);
 }
-export function ReqParam(paramKey, type) {
+exports.ReqParams = ReqParams;
+function ReqParam(paramKey, type) {
     return (target, key, index) => {
         addRoutingParameterDecoratorToFunction('param', target, key, index, { key: paramKey, type });
     };
 }
-export function ReqHeader(headerKey, type) {
+exports.ReqParam = ReqParam;
+function ReqHeader(headerKey, type) {
     return (target, key, index) => {
         addRoutingParameterDecoratorToFunction('header', target, key, index, { key: headerKey, type });
     };
 }
-export function Req(target, key, index) {
+exports.ReqHeader = ReqHeader;
+function Req(target, key, index) {
     addRoutingParameterDecoratorToFunction('request', target, key, index);
 }
-export function Request(target, key, index) {
+exports.Req = Req;
+function Request(target, key, index) {
     addRoutingParameterDecoratorToFunction('request', target, key, index);
 }
-export function Res(target, key, index) {
+exports.Request = Request;
+function Res(target, key, index) {
     addRoutingParameterDecoratorToFunction('response', target, key, index);
 }
-export function Response(target, key, index) {
+exports.Res = Res;
+function Response(target, key, index) {
     addRoutingParameterDecoratorToFunction('response', target, key, index);
 }
-export function Next(target, key, index) {
+exports.Response = Response;
+function Next(target, key, index) {
     addRoutingParameterDecoratorToFunction('next', target, key, index);
 }
+exports.Next = Next;

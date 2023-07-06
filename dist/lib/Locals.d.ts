@@ -1,0 +1,41 @@
+import { Query } from 'express-serve-static-core';
+import { Request, Response } from 'express';
+import { Notores } from '../types/Notores';
+export declare class Locals extends Notores.Locals {
+    _contentType: string[];
+    _body: Record<string, any>;
+    _payload: Record<string, any>;
+    _url: string;
+    _path: string;
+    _user: Notores.User | null;
+    _query: Query;
+    _accepts: string[];
+    _error: Error | null;
+    _statusCode: number;
+    _authenticated: boolean;
+    _NODE_ENV: string;
+    constructor(req: Request, res: Response);
+    setBody(body: Record<string, any>, overwrite?: boolean): any;
+    bodyPropertyIsSet(property?: string): boolean;
+    get body(): Record<string, any>;
+    get contentType(): string[];
+    set contentType(contentType: string[]);
+    addContentType(contentType: string | string[]): string[];
+    get accepts(): string[];
+    set accepts(accepts: string[]);
+    addAccepts(accepts: string | string[]): string[];
+    get config(): Notores.Config;
+    get user(): Notores.User;
+    get query(): Query;
+    get error(): Error;
+    set error(error: Error);
+    set statusCode(statusCode: number);
+    get statusCode(): number;
+    get hasError(): boolean;
+    get payload(): Record<string, any>;
+    get url(): string;
+    get path(): string;
+    toJSON(): {
+        [x: string]: any;
+    };
+}

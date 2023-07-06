@@ -1,9 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getClassMethodsByDecoratedProperty = exports.setBody = void 0;
 /**
  * Generate response body from @Module key and response values
  * @param result - Response from the Module's routing function
  * @param moduleMetaData - Metadata derived from @Module settings
  */
-export function setBody(result, moduleMetaData) {
+function setBody(result, moduleMetaData) {
     if (moduleMetaData.responseIsBody) {
         return result;
     }
@@ -17,13 +20,14 @@ export function setBody(result, moduleMetaData) {
         return { [moduleMetaData.dataKey]: result };
     }
 }
+exports.setBody = setBody;
 /**
  * Recursively (taking into account super classes) find names of the methods, that were decorated with given property, in a class.
  * @param clazz - target class
  * @param symbolKey - Symbol('string') which is used to define routes
  * @param foundMethodsNames - array of methods names found (useful when concatenating results of recursive search through superclasses)
  */
-export function getClassMethodsByDecoratedProperty(clazz, symbolKey, foundMethodsNames = []) {
+function getClassMethodsByDecoratedProperty(clazz, symbolKey, foundMethodsNames = []) {
     const clazzMethods = foundMethodsNames.concat(Object.getOwnPropertyNames(clazz.prototype)
         .filter(functionName => functionName !== 'constructor')
         .filter(functionName => Reflect.getOwnMetadata(symbolKey, clazz.prototype[functionName]) !== undefined));
@@ -34,3 +38,4 @@ export function getClassMethodsByDecoratedProperty(clazz, symbolKey, foundMethod
     // returns an array of *unique* method names
     return clazzMethods.filter((methodName, index, array) => array.indexOf(methodName) === index);
 }
+exports.getClassMethodsByDecoratedProperty = getClassMethodsByDecoratedProperty;

@@ -1,44 +1,43 @@
-export default class RoutingMetadata {
-    _path = '';
-    _roles;
-    _authenticated = false;
-    _unAuthRedirect = false;
-    _restricted = false; // Use /n-admin path
-    _target;
-    _propertyKey;
-    _prefix = '';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+class RoutingMetadata {
     constructor(target, propertyKey) {
+        this._path = '';
+        this._authenticated = false;
+        this._unAuthRedirect = false;
+        this._restricted = false; // Use /n-admin path
+        this._prefix = '';
+        this.isAuthorized = (userRoles) => {
+            if (!this._roles)
+                return true;
+            for (let i = 0; i < userRoles.length; i++) {
+                const r = userRoles[i];
+                const userRole = (typeof r === 'string' ? r : r.role).toLowerCase();
+                if (this._roles.includes(userRole))
+                    return true;
+            }
+            return false;
+        };
+        this.setAuthenticated = (settings) => {
+            this._authenticated = true;
+            if (settings === null || settings === void 0 ? void 0 : settings.redirect)
+                this._unAuthRedirect = settings.redirect;
+        };
+        this.setAuthorized = (roles) => {
+            this.setAuthenticated();
+            this.roles = (Array.isArray(roles) ? roles : [roles]);
+        };
+        this.setRestricted = (roles = ['admin']) => {
+            this.setAuthenticated();
+            this._restricted = true;
+            this.roles = (Array.isArray(roles) ? roles : [roles]);
+        };
+        this.setAdmin = () => {
+            this.setRestricted(['admin']);
+        };
         this._target = target;
         this._propertyKey = propertyKey;
     }
-    isAuthorized = (userRoles) => {
-        if (!this._roles)
-            return true;
-        for (let i = 0; i < userRoles.length; i++) {
-            const r = userRoles[i];
-            const userRole = (typeof r === 'string' ? r : r.role).toLowerCase();
-            if (this._roles.includes(userRole))
-                return true;
-        }
-        return false;
-    };
-    setAuthenticated = (settings) => {
-        this._authenticated = true;
-        if (settings?.redirect)
-            this._unAuthRedirect = settings.redirect;
-    };
-    setAuthorized = (roles) => {
-        this.setAuthenticated();
-        this.roles = (Array.isArray(roles) ? roles : [roles]);
-    };
-    setRestricted = (roles = ['admin']) => {
-        this.setAuthenticated();
-        this._restricted = true;
-        this.roles = (Array.isArray(roles) ? roles : [roles]);
-    };
-    setAdmin = () => {
-        this.setRestricted(['admin']);
-    };
     set path(path) {
         this._path = path;
     }
@@ -99,3 +98,4 @@ export default class RoutingMetadata {
         return this._propertyKey;
     }
 }
+exports.default = RoutingMetadata;

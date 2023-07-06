@@ -1,0 +1,10 @@
+import { ClassType, Notores } from "../types/Notores";
+declare type SwagPropReturn = (target: any, key: string) => void;
+export declare function SwagProp(): SwagPropReturn;
+export declare function SwagProp(classType?: ClassType): SwagPropReturn;
+export declare function SwagProp(refOptions?: Notores.SwagPropRefOptions): SwagPropReturn;
+export declare function SwagProp(arrayOptions?: Notores.SwagPropOptions): SwagPropReturn;
+export declare function SwagArrayProp(ref: ClassType): SwagPropReturn;
+export declare function SwagArrayProp(refOptions?: Notores.SwagPropRefOptions): SwagPropReturn;
+export declare function SwagArrayProp(swagPropArrayOptions: Notores.SwagPropArrayOptions): SwagPropReturn;
+export {};

@@ -1,8 +1,14 @@
-import { readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
-import assign from 'assign-deep';
-import { systemLoggerFactory } from "./Logger";
-const logger = systemLoggerFactory('@notores/core');
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.writeConfig = exports.getConfig = exports.getJsonFile = exports.getDefaultConfig = void 0;
+const fs_1 = require("fs");
+const path_1 = require("path");
+const assign_deep_1 = __importDefault(require("assign-deep"));
+const Logger_1 = require("./Logger");
+const logger = (0, Logger_1.systemLoggerFactory)('@notores/core');
 const rootDir = process.cwd();
 const notoresConfigFilename = 'notores.json';
 const defaultConfig = {
@@ -25,9 +31,10 @@ const defaultConfig = {
     },
     swagger: {}
 };
-export function getDefaultConfig() {
+function getDefaultConfig() {
     return defaultConfig;
 }
+exports.getDefaultConfig = getDefaultConfig;
 /**
  * Loads the JSON file through readFileSync on the given path. It loads the file with encoding 'utf-8'
  * @param {String} filepath The filepath to load the JSON file fromt
@@ -35,9 +42,9 @@ export function getDefaultConfig() {
  * @return {Object|{error: string}}`
  * @example const result = getJsonFile(`${process.cwd()}/package.j son`, authors);
  */
-export function getJsonFile(filepath, key) {
+function getJsonFile(filepath, key) {
     try {
-        const jsonFileString = readFileSync(filepath, 'utf-8');
+        const jsonFileString = (0, fs_1.readFileSync)(filepath, 'utf-8');
         const jsonFile = JSON.parse(jsonFileString);
         if (key)
             return jsonFile[key];
@@ -50,27 +57,29 @@ export function getJsonFile(filepath, key) {
         return new Error(errorMessage);
     }
 }
-export function getConfig() {
+exports.getJsonFile = getJsonFile;
+function getConfig() {
     let configFile = {};
     try {
-        configFile = getJsonFile(join(rootDir, './', notoresConfigFilename));
+        configFile = getJsonFile((0, path_1.join)(rootDir, './', notoresConfigFilename));
     }
     catch (e) {
         logger.error(`${notoresConfigFilename} not found, did you add on in root? Using default values.`);
     }
     const config = getDefaultConfig();
-    return assign(config, configFile);
+    return (0, assign_deep_1.default)(config, configFile);
 }
-export function writeConfig(update, key) {
-    const configContent = getJsonFile(join(rootDir, './', notoresConfigFilename)) || {};
+exports.getConfig = getConfig;
+function writeConfig(update, key) {
+    const configContent = getJsonFile((0, path_1.join)(rootDir, './', notoresConfigFilename)) || {};
     if (key) {
-        assign(configContent[key], update);
+        (0, assign_deep_1.default)(configContent[key], update);
     }
     else {
-        assign(configContent, update);
+        (0, assign_deep_1.default)(configContent, update);
     }
     try {
-        writeFileSync(join(rootDir, './', notoresConfigFilename), JSON.stringify(configContent, null, 4));
+        (0, fs_1.writeFileSync)((0, path_1.join)(rootDir, './', notoresConfigFilename), JSON.stringify(configContent, null, 4));
         logger.info('Updated notores config');
         return getConfig();
     }
@@ -80,3 +89,4 @@ export function writeConfig(update, key) {
         return new Error(errorMessage);
     }
 }
+exports.writeConfig = writeConfig;

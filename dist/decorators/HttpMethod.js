@@ -1,17 +1,31 @@
-import { apiMetadataKey } from "../symbols";
-import { SystemLogger } from "../Notores";
-import { ApiMetaData, HttpMethod, isResponseObject, logErrorApiMetaDataDoesNotExist, logWarningIfNoAuthentication } from "../lib";
+"use strict";
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DeleteId = exports.PatchId = exports.PutId = exports.GetId = exports.Delete = exports.Patch = exports.Put = exports.Post = exports.Get = exports.PostMiddleware = exports.PreMiddleware = exports.Private = exports.Admin = exports.SwaggerHideRoute = exports.Authenticated = exports.Authorized = exports.Roles = exports.Restricted = exports.Accepts = exports.ContentType = exports.SwaggerDoc = exports.SwaggerResponse = exports.SwaggerParameters = exports.SwaggerRequestBody = void 0;
+const symbols_1 = require("../symbols");
+const Notores_1 = require("../Notores");
+const lib_1 = require("../lib");
 function getApiMetaData(target, propertyKey) {
-    const existingApiMetaData = Reflect.getOwnMetadata(apiMetadataKey, target[propertyKey]);
+    const existingApiMetaData = Reflect.getOwnMetadata(symbols_1.apiMetadataKey, target[propertyKey]);
     if (!existingApiMetaData) {
-        throw logErrorApiMetaDataDoesNotExist('Restricted', target, propertyKey);
+        throw (0, lib_1.logErrorApiMetaDataDoesNotExist)('Restricted', target, propertyKey);
     }
     return existingApiMetaData;
 }
 function generateHttpMethodDecorator(method, addId = false) {
     return function Path(path = '/', { swagger = true } = { swagger: true }) {
         return function (target, propertyKey) {
-            const apiMetaData = ApiMetaData.getApiMetaData(target, propertyKey);
+            const apiMetaData = lib_1.ApiMetaData.getApiMetaData(target, propertyKey);
             apiMetaData.extractPathData(target, propertyKey);
             apiMetaData.setMethod(method);
             apiMetaData.addId = addId;
@@ -22,58 +36,65 @@ function generateHttpMethodDecorator(method, addId = false) {
         };
     };
 }
-export function SwaggerRequestBody(body) {
+function SwaggerRequestBody(body) {
     return (target, propertyKey) => {
         const existingApiMetaData = getApiMetaData(target, propertyKey);
         existingApiMetaData.addSwaggerRequestBody(body);
-        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
-export function SwaggerParameters(parameter) {
+exports.SwaggerRequestBody = SwaggerRequestBody;
+function SwaggerParameters(parameter) {
     return (target, propertyKey) => {
         const existingApiMetaData = getApiMetaData(target, propertyKey);
         existingApiMetaData.addSwaggerParameter(parameter);
-        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
-export function SwaggerResponse(statusCode, response, description) {
+exports.SwaggerParameters = SwaggerParameters;
+function SwaggerResponse(statusCode, response, description) {
     return (target, propertyKey) => {
         const existingApiMetaData = getApiMetaData(target, propertyKey);
-        if (isResponseObject(response)) {
+        if ((0, lib_1.isResponseObject)(response)) {
             existingApiMetaData.addSwaggerResponse(statusCode, response);
         }
         else {
             existingApiMetaData.addResponseObject(statusCode, response);
         }
-        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
-export function SwaggerDoc({ operationId, ...operations }) {
+exports.SwaggerResponse = SwaggerResponse;
+function SwaggerDoc(_a) {
+    var { operationId } = _a, operations = __rest(_a, ["operationId"]);
     return (target, propertyKey) => {
         const existingApiMetaData = getApiMetaData(target, propertyKey);
         existingApiMetaData.swaggerDoc = operations;
         if (operationId)
             existingApiMetaData.swaggerOperationId = operationId;
-        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
-export function ContentType(type) {
+exports.SwaggerDoc = SwaggerDoc;
+function ContentType(type) {
     return (target, propertyKey) => {
         const existingApiMetaData = getApiMetaData(target, propertyKey);
         existingApiMetaData.contentType = type;
-        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
-export function Accepts() {
+exports.ContentType = ContentType;
+function Accepts() {
     // @ts-ignore
     const type = [...new Set(arguments)];
     return (target, propertyKey) => {
         const existingApiMetaData = getApiMetaData(target, propertyKey);
         existingApiMetaData.accepts = Array.isArray(type) ? type : [type];
-        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
-export function Restricted() {
+exports.Accepts = Accepts;
+function Restricted() {
     // @ts-ignore
     const roles = [...new Set(arguments)];
     if (roles.length === 0) {
@@ -81,100 +102,118 @@ export function Restricted() {
     }
     return (target, propertyKey) => {
         const existingApiMetaData = getApiMetaData(target, propertyKey);
-        logWarningIfNoAuthentication('Restricted', target, propertyKey);
+        (0, lib_1.logWarningIfNoAuthentication)('Restricted', target, propertyKey);
         existingApiMetaData.setRestricted(roles);
-        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
-export function Roles(roles) {
+exports.Restricted = Restricted;
+function Roles(roles) {
     return (target, propertyKey) => {
         const existingApiMetaData = getApiMetaData(target, propertyKey);
-        logWarningIfNoAuthentication('Roles', target, propertyKey);
+        (0, lib_1.logWarningIfNoAuthentication)('Roles', target, propertyKey);
         existingApiMetaData.roles = roles;
-        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
-export function Authorized(roles) {
+exports.Roles = Roles;
+function Authorized(roles) {
     return (target, propertyKey) => {
         const existingApiMetaData = getApiMetaData(target, propertyKey);
         existingApiMetaData.setAuthorized(roles);
-        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
-export function Authenticated(settings = { redirect: false }) {
+exports.Authorized = Authorized;
+function Authenticated(settings = { redirect: false }) {
     return (target, propertyKey) => {
         const existingApiMetaData = getApiMetaData(target, propertyKey);
         existingApiMetaData.setAuthenticated(settings);
-        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
-export function SwaggerHideRoute() {
+exports.Authenticated = Authenticated;
+function SwaggerHideRoute() {
     return (target, propertyKey) => {
         const existingApiMetaData = getApiMetaData(target, propertyKey);
         existingApiMetaData.addSwagger = false;
-        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
-export function Admin() {
+exports.SwaggerHideRoute = SwaggerHideRoute;
+function Admin() {
     return (target, propertyKey) => {
         const existingApiMetaData = getApiMetaData(target, propertyKey);
         existingApiMetaData.setAdmin();
-        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
+exports.Admin = Admin;
 /**
  * @deprecated Since version 0.6.0 Will be deleted in version 1.0. Use @Restricted instead.
  */
-export function Private() {
+function Private() {
     return (target, propertyKey) => {
-        SystemLogger.warn('Decorator @Private is deprecated, please use @Restricted instead');
+        Notores_1.SystemLogger.warn('Decorator @Private is deprecated, please use @Restricted instead');
         const existingApiMetaData = getApiMetaData(target, propertyKey);
         existingApiMetaData.setRestricted(['admin']);
-        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
-export function PreMiddleware(input) {
+exports.Private = Private;
+function PreMiddleware(input) {
     return (target, propertyKey) => {
         const existingApiMetaData = getApiMetaData(target, propertyKey);
         existingApiMetaData.preMiddlewares = input;
-        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
-export function PostMiddleware(input) {
+exports.PreMiddleware = PreMiddleware;
+function PostMiddleware(input) {
     return (target, propertyKey) => {
         const existingApiMetaData = getApiMetaData(target, propertyKey);
         existingApiMetaData.postMiddlewares = input;
-        Reflect.defineMetadata(apiMetadataKey, existingApiMetaData, target[propertyKey]);
+        Reflect.defineMetadata(symbols_1.apiMetadataKey, existingApiMetaData, target[propertyKey]);
     };
 }
-export function Get(path, options) {
+exports.PostMiddleware = PostMiddleware;
+function Get(path, options) {
     if (path && typeof path !== 'string') {
-        const { path: p, ...rest } = path;
-        return generateHttpMethodDecorator(HttpMethod.GET)(p, rest);
+        const _a = path, { path: p } = _a, rest = __rest(_a, ["path"]);
+        return generateHttpMethodDecorator(lib_1.HttpMethod.GET)(p, rest);
     }
-    return generateHttpMethodDecorator(HttpMethod.GET)(path, options);
+    return generateHttpMethodDecorator(lib_1.HttpMethod.GET)(path, options);
 }
-export function Post(path) {
-    return generateHttpMethodDecorator(HttpMethod.POST)(path);
+exports.Get = Get;
+function Post(path) {
+    return generateHttpMethodDecorator(lib_1.HttpMethod.POST)(path);
 }
-export function Put(path) {
-    return generateHttpMethodDecorator(HttpMethod.PUT)(path);
+exports.Post = Post;
+function Put(path) {
+    return generateHttpMethodDecorator(lib_1.HttpMethod.PUT)(path);
 }
-export function Patch(path) {
-    return generateHttpMethodDecorator(HttpMethod.PATCH)(path);
+exports.Put = Put;
+function Patch(path) {
+    return generateHttpMethodDecorator(lib_1.HttpMethod.PATCH)(path);
 }
-export function Delete(path) {
-    return generateHttpMethodDecorator(HttpMethod.DELETE)(path);
+exports.Patch = Patch;
+function Delete(path) {
+    return generateHttpMethodDecorator(lib_1.HttpMethod.DELETE)(path);
 }
-export function GetId(path) {
-    return generateHttpMethodDecorator(HttpMethod.GET, true)(path);
+exports.Delete = Delete;
+function GetId(path) {
+    return generateHttpMethodDecorator(lib_1.HttpMethod.GET, true)(path);
 }
-export function PutId(path) {
-    return generateHttpMethodDecorator(HttpMethod.PUT, true)(path);
+exports.GetId = GetId;
+function PutId(path) {
+    return generateHttpMethodDecorator(lib_1.HttpMethod.PUT, true)(path);
 }
-export function PatchId(path) {
-    return generateHttpMethodDecorator(HttpMethod.PATCH, true)(path);
+exports.PutId = PutId;
+function PatchId(path) {
+    return generateHttpMethodDecorator(lib_1.HttpMethod.PATCH, true)(path);
 }
-export function DeleteId(path) {
-    return generateHttpMethodDecorator(HttpMethod.DELETE, true)(path);
+exports.PatchId = PatchId;
+function DeleteId(path) {
+    return generateHttpMethodDecorator(lib_1.HttpMethod.DELETE, true)(path);
 }
+exports.DeleteId = DeleteId;

@@ -1,15 +1,18 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.swaggerPropMetadataKey = exports.swaggerClassMetadataKey = exports.apiParameterMetadataKey = exports.middlewareMetadataKey = exports.apiMetadataKey = exports.moduleMetadataKey = void 0;
 /*****************************
  ******* API KEYS *******
  *****************************/
-export const moduleMetadataKey = Symbol('notores-moduleKey');
-export const apiMetadataKey = Symbol('notores-apiMetadataKey');
-export const middlewareMetadataKey = Symbol('notores-middlewareMetadataKey');
-export const apiParameterMetadataKey = Symbol('notores-apiParameterMetadataKey');
+exports.moduleMetadataKey = Symbol('notores-moduleKey');
+exports.apiMetadataKey = Symbol('notores-apiMetadataKey');
+exports.middlewareMetadataKey = Symbol('notores-middlewareMetadataKey');
+exports.apiParameterMetadataKey = Symbol('notores-apiParameterMetadataKey');
 /*****************************
  ******* LOCALS KEYS *******
  *****************************/
 /*****************************
  ******* SWAGGER KEYS *******
  *****************************/
-export const swaggerClassMetadataKey = Symbol('notores-swaggerClassKey');
-export const swaggerPropMetadataKey = Symbol('notores-swaggerPropKey');
+exports.swaggerClassMetadataKey = Symbol('notores-swaggerClassKey');
+exports.swaggerPropMetadataKey = Symbol('notores-swaggerPropKey');

@@ -1,10 +1,13 @@
-import 'reflect-metadata';
-import { getClassMethodsByDecoratedProperty, ModuleMetaData } from "../lib";
-import { apiMetadataKey, moduleMetadataKey } from "../symbols";
-export function Module(settings) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Module = void 0;
+require("reflect-metadata");
+const lib_1 = require("../lib");
+const symbols_1 = require("../symbols");
+function Module(settings) {
     return function (target) {
         const filePath = getFilePath();
-        const metadata = new ModuleMetaData(target, filePath);
+        const metadata = new lib_1.ModuleMetaData(target, filePath);
         if (!settings) {
             metadata.responseIsBody = false;
         }
@@ -41,15 +44,16 @@ export function Module(settings) {
                 metadata.swaggerTag = undefined;
             }
         }
-        Reflect.defineMetadata(moduleMetadataKey, metadata, target);
+        Reflect.defineMetadata(symbols_1.moduleMetadataKey, metadata, target);
         setPathDefaults(target, metadata);
     };
 }
+exports.Module = Module;
 function setPathDefaults(target, metadata) {
     try {
-        const pathRouteMethods = getClassMethodsByDecoratedProperty(target, apiMetadataKey);
+        const pathRouteMethods = (0, lib_1.getClassMethodsByDecoratedProperty)(target, symbols_1.apiMetadataKey);
         for (const propertyKey of pathRouteMethods) {
-            const existingApiMetaData = Reflect.getOwnMetadata(apiMetadataKey, target.prototype[propertyKey]);
+            const existingApiMetaData = Reflect.getOwnMetadata(symbols_1.apiMetadataKey, target.prototype[propertyKey]);
             existingApiMetaData.addPathPrefix(metadata.prefix);
             if (existingApiMetaData.addSwagger) {
                 existingApiMetaData

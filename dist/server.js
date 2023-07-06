@@ -1,8 +1,14 @@
-import express from 'express';
-import { getConfig, systemLoggerFactory, errorResponseHandler, responseHandler, Locals } from './lib';
-const logger = systemLoggerFactory('@notores/core/server');
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.createNotoresServer = void 0;
+const express_1 = __importDefault(require("express"));
+const lib_1 = require("./lib");
+const logger = (0, lib_1.systemLoggerFactory)('@notores/core/server');
 let apps;
-export function createNotoresServer(notores) {
+function createNotoresServer(notores) {
     buildApps();
     const compression = require('compression');
     const bodyParser = require('body-parser');
@@ -16,7 +22,7 @@ export function createNotoresServer(notores) {
     });
     apps.system.use(function notoresConfig(req, _, next) {
         req.notores = notores;
-        req.config = getConfig();
+        req.config = (0, lib_1.getConfig)();
         next();
     });
     apps.system.use(function notoresUseCookieCheck(req, res, next) {
@@ -59,7 +65,7 @@ export function createNotoresServer(notores) {
         })(req, res, next);
     });
     apps.preMiddleware.use(function notoresInitLocals(req, res, next) {
-        res.locals = new Locals(req, res);
+        res.locals = new lib_1.Locals(req, res);
         next();
     });
     apps.restricted.main.use(function notoresRestrictedCheckAuthenticated(req, res, next) {
@@ -78,27 +84,28 @@ export function createNotoresServer(notores) {
     });
     return apps;
 }
+exports.createNotoresServer = createNotoresServer;
 function buildApps() {
     apps = {
-        main: express(),
-        system: express.Router(),
-        auth: express.Router(),
-        preMiddleware: express.Router(),
+        main: (0, express_1.default)(),
+        system: express_1.default.Router(),
+        auth: express_1.default.Router(),
+        preMiddleware: express_1.default.Router(),
         public: {
-            router: express.Router(),
-            preMiddleware: express.Router(),
-            main: express.Router(),
-            postMiddleware: express.Router(),
-            responders: express.Router(),
+            router: express_1.default.Router(),
+            preMiddleware: express_1.default.Router(),
+            main: express_1.default.Router(),
+            postMiddleware: express_1.default.Router(),
+            responders: express_1.default.Router(),
         },
         restricted: {
-            router: express.Router(),
-            preMiddleware: express.Router(),
-            main: express.Router(),
-            postMiddleware: express.Router(),
-            responders: express.Router(),
+            router: express_1.default.Router(),
+            preMiddleware: express_1.default.Router(),
+            main: express_1.default.Router(),
+            postMiddleware: express_1.default.Router(),
+            responders: express_1.default.Router(),
         },
-        errorResponders: express.Router(),
+        errorResponders: express_1.default.Router(),
     };
     /** Base **/
     apps.main.use(apps.system);
@@ -110,15 +117,15 @@ function buildApps() {
     apps.public.router.use(apps.public.main);
     apps.public.router.use(apps.public.postMiddleware);
     apps.public.router.use(apps.public.responders);
-    apps.public.responders.use(responseHandler);
+    apps.public.responders.use(lib_1.responseHandler);
     /** Restricted **/
     apps.main.use('/n-admin', apps.restricted.router);
     apps.restricted.router.use(apps.restricted.preMiddleware);
     apps.restricted.router.use(apps.restricted.main);
     apps.restricted.router.use(apps.restricted.postMiddleware);
     apps.restricted.router.use(apps.restricted.responders);
-    apps.restricted.responders.use(responseHandler);
+    apps.restricted.responders.use(lib_1.responseHandler);
     /** Error Responder **/
     apps.main.use(apps.errorResponders);
-    apps.errorResponders.use(errorResponseHandler);
+    apps.errorResponders.use(lib_1.errorResponseHandler);
 }

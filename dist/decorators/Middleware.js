@@ -1,8 +1,12 @@
-import { MiddlewareMetaData } from "../lib";
-import { middlewareMetadataKey } from "../symbols";
-export function Use(middlewares) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Use = void 0;
+const lib_1 = require("../lib");
+const symbols_1 = require("../symbols");
+function Use(middlewares) {
     return (target, propertyKey) => {
-        const existingMiddlewareMetadata = Reflect.getOwnMetadata(middlewareMetadataKey, target[propertyKey]) ?? new MiddlewareMetaData(target, propertyKey);
+        var _a;
+        const existingMiddlewareMetadata = (_a = Reflect.getOwnMetadata(symbols_1.middlewareMetadataKey, target[propertyKey])) !== null && _a !== void 0 ? _a : new lib_1.MiddlewareMetaData(target, propertyKey);
         if (middlewares) {
             if (typeof middlewares === 'object') {
                 if (middlewares.hasOwnProperty('pre'))
@@ -16,6 +20,7 @@ export function Use(middlewares) {
                 existingMiddlewareMetadata.path = middlewares;
             }
         }
-        Reflect.defineMetadata(middlewareMetadataKey, existingMiddlewareMetadata, target[propertyKey]);
+        Reflect.defineMetadata(symbols_1.middlewareMetadataKey, existingMiddlewareMetadata, target[propertyKey]);
     };
 }
+exports.Use = Use;

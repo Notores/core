@@ -1,19 +1,25 @@
-export function capitalizeFirstLetter(string) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getFunctionParamName = exports.getFunctionParams = exports.getAllPathParams = exports.getFirstPathParameter = exports.pathParamRegex = exports.capitalizeFirstLetter = void 0;
+function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
-export const pathParamRegex = /(?:\:)([a-z_\d]*)/gi;
-export function getFirstPathParameter(path) {
-    return pathParamRegex.exec(path);
+exports.capitalizeFirstLetter = capitalizeFirstLetter;
+exports.pathParamRegex = /(?:\:)([a-z_\d]*)/gi;
+function getFirstPathParameter(path) {
+    return exports.pathParamRegex.exec(path);
 }
-export function getAllPathParams(path) {
-    return path.match(pathParamRegex) || [];
+exports.getFirstPathParameter = getFirstPathParameter;
+function getAllPathParams(path) {
+    return path.match(exports.pathParamRegex) || [];
 }
+exports.getAllPathParams = getAllPathParams;
 /**
  * Implementation thanks to
  * https://www.geeksforgeeks.org/how-to-get-the-javascript-function-parameter-names-values-dynamically/
  * @param func
  */
-export function getFunctionParams(func) {
+function getFunctionParams(func) {
     let str = func.toString();
     str = str.replace(/\/\*[\s\S]*?\*\//g, '')
         .replace(/\/\/(.)*/g, '')
@@ -31,7 +37,9 @@ export function getFunctionParams(func) {
     });
     return params;
 }
-export function getFunctionParamName(func, index) {
+exports.getFunctionParams = getFunctionParams;
+function getFunctionParamName(func, index) {
     const params = getFunctionParams(func);
     return params[index];
 }
+exports.getFunctionParamName = getFunctionParamName;
